@@ -79,5 +79,5 @@ public class Event {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-    
+
 }
