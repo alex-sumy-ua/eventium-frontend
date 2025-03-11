@@ -83,4 +83,7 @@ dependencies {
 // Material Design UI components
     implementation libs.material
 
+// OkHttp Logging Interceptor
+    implementation libs.logging.interceptor
+
 }
