@@ -30,6 +30,8 @@ public class Event {
     @SerializedName("created_at")
     private LocalDateTime createdAt;
 
+    public Event() {}
+
     public Event(UUID eventId,
                  String title,
                  String description,
