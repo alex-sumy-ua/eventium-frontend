@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_users"
+        android:icon="@drawable/ic_users"
+        android:title="Users" />
+    <item
+        android:id="@+id/nav_events"
+        android:icon="@drawable/ic_events"
+        android:title="Events" />
+    <item
+        android:id="@+id/nav_event_registrations"
+        android:icon="@drawable/ic_registration"
+        android:title="Registrations" />
+</menu>
+

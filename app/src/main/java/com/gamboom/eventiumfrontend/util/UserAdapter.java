@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.User;
 
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
@@ -18,13 +20,15 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     private List<User> users;
 
     public UserAdapter(List<User> users) {
-        this.users = users;
+        this.users = users != null ? users : new ArrayList<>(); // Prevent null pointer exception
     }
 
     // Method to update the user data when fetched
     public void updateData(List<User> newUsers) {
-        this.users = newUsers;
-        notifyDataSetChanged();  // Notify the adapter that the data has been updated
+        if (newUsers != null) {
+            this.users = newUsers;
+            notifyDataSetChanged();  // Notify the adapter that the data has been updated
+        }
     }
 
     @NonNull
@@ -39,13 +43,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         User user = users.get(position);
         holder.userName.setText(user.getName());
         holder.userEmail.setText(user.getEmail());
-        holder.userRole.setText(user.getRole().toString()); // Display role (ADMIN, STAFF, MEMBER)
-        holder.userCreatedAt.setText(user.getCreatedAt().toString());
+
+        // Handle null and format the enum Role value
+        holder.userRole.setText(user.getRole() != null ? user.getRole().toString() : "Unknown");
+
+        // Format createdAt with DateTimeFormatter and handle null value
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        holder.userCreatedAt.setText(user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "N/A");
     }
 
     @Override
     public int getItemCount() {
-        return users.size();
+        return users != null ? users.size() : 0; // Return 0 if users is null
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
@@ -59,5 +68,4 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             userCreatedAt = itemView.findViewById(R.id.userCreatedAt);
         }
     }
-
 }
