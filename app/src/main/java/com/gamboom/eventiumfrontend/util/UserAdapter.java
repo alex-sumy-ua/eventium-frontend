@@ -15,10 +15,16 @@ import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
-    private final List<User> users;
+    private List<User> users;
 
     public UserAdapter(List<User> users) {
         this.users = users;
+    }
+
+    // Method to update the user data when fetched
+    public void updateData(List<User> newUsers) {
+        this.users = newUsers;
+        notifyDataSetChanged();  // Notify the adapter that the data has been updated
     }
 
     @NonNull
