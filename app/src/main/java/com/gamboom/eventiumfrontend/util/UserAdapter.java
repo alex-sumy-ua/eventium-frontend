@@ -40,6 +40,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         holder.userName.setText(user.getName());
         holder.userEmail.setText(user.getEmail());
         holder.userRole.setText(user.getRole().toString()); // Display role (ADMIN, STAFF, MEMBER)
+        holder.userCreatedAt.setText(user.getCreatedAt().toString());
     }
 
     @Override
@@ -48,13 +49,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
-        TextView userName, userEmail, userRole;
+        TextView userName, userEmail, userRole, userCreatedAt;
 
         public UserViewHolder(View itemView) {
             super(itemView);
             userName = itemView.findViewById(R.id.userName);
             userEmail = itemView.findViewById(R.id.userEmail);
             userRole = itemView.findViewById(R.id.userRole);
+            userCreatedAt = itemView.findViewById(R.id.userCreatedAt);
         }
     }
 

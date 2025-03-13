@@ -24,7 +24,8 @@
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userName"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="2dp" />
 
     <TextView
         android:id="@+id/userRole"
@@ -35,5 +36,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userEmail"
         app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="2dp" /> <!-- Removed constraintBottom_toBottomOf -->
+
+    <TextView
+        android:id="@+id/userCreatedAt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Created At"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/userRole"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
