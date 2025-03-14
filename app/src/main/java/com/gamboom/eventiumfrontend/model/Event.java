@@ -6,28 +6,28 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Event {
-    @SerializedName("event_id")
+    //    @SerializedName("event_id")
     private UUID eventId;
 
-    @SerializedName("title")
+    //    @SerializedName("title")
     private String title;
 
-    @SerializedName("description")
+    //    @SerializedName("description")
     private String description;
 
-    @SerializedName("location")
+    //    @SerializedName("location")
     private String location;
 
-    @SerializedName("start_time")
+    //    @SerializedName("start_time")
     private LocalDateTime startTime;
 
-    @SerializedName("end_time")
+    //    @SerializedName("end_time")
     private LocalDateTime endTime;
 
-    @SerializedName("created_by")
+    //    @SerializedName("created_by")
     private UUID createdBy;
 
-    @SerializedName("created_at")
+    //    @SerializedName("created_at")
     private LocalDateTime createdAt;
 
     public Event() {}
@@ -54,32 +54,63 @@ public class Event {
         return eventId;
     }
 
+    public void setEventId(UUID eventId) {
+        this.eventId = eventId;
+    }
+
     public String getTitle() {
         return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getDescription() {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getLocation() {
         return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public LocalDateTime getStartTime() {
         return startTime;
     }
 
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
     public LocalDateTime getEndTime() {
         return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
     public UUID getCreatedBy() {
         return createdBy;
     }
 
+    public void setCreatedBy(UUID createdBy) {
+        this.createdBy = createdBy;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

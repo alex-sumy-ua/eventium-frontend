@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import android.util.Log;
+
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
     private final List<Event> eventList;
     private final Map<UUID, String> userNames;
@@ -32,6 +34,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 userNames.put(user.getUserId(), user.getName());  // Ensure these getters exist
             }
         }
+
+        Log.d("EventAdapter", "List of users: " + userList);
     }
 
     @NonNull
@@ -57,8 +61,23 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.createdAt.setText(event.getCreatedAt() != null ? event.getCreatedAt().format(formatter) : "N/A");
 
         // Default "Unknown" if user not found in the map
-        String creatorName = userNames.getOrDefault(event.getCreatedBy(), "Unknown");
-        holder.createdBy.setText(creatorName);
+////        String creatorName = userNames.getOrDefault(event.getCreatedBy(), "Unknown");
+////        holder.createdBy.setText(creatorName);
+//        holder.createdBy.setText(userNames.get(event.getCreatedBy() != null ? event.getCreatedBy().toString() : "Unknown"));;
+
+
+        // Log the createdBy UUID value
+        Log.d("EventAdapter", "CreatedBy UUID: " + event.getCreatedBy());
+
+        // Check if createdBy UUID exists in the map and fetch the name
+        if (event.getCreatedBy() != null && userNames.containsKey(event.getCreatedBy())) {
+            String creatorName = userNames.get(event.getCreatedBy());
+            holder.createdBy.setText(creatorName);
+        } else {
+            // If no user is found in the map, set "Unknown"
+            holder.createdBy.setText("Unknown");
+        }
+
     }
 
     @Override
@@ -81,10 +100,23 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         }
     }
 
-    public void updateEvents(List<Event> newEvents) {
+    public void updateData(List<Event> newEvents, List<User> userList) {
+
+        // Update the events list
         int previousSize = eventList.size();
         eventList.clear();
         eventList.addAll(newEvents);
+
+        // Update the userNames map
+        userNames.clear();
+        if (userList != null) {
+            for (User user : userList) {
+                userNames.put(user.getUserId(), user.getName());
+            }
+        }
+
+        // Notify the adapter of changes
         notifyItemRangeInserted(previousSize, newEvents.size());
     }
+
 }
