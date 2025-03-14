@@ -6,19 +6,28 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <!-- Eventium Banner at the Top -->
+    <TextView
+        android:id="@+id/banner_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Eventium"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="16dp"
+        android:background="@color/chocolateColor"
+        android:textColor="@android:color/white"
+        android:fontFamily="@font/eventium_font"/>
+
     <!-- Fragment container for switching between fragments -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container"
-        android:name="com.gamboom.eventiumfrontend.fragments.UserFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- RecyclerView to show the list of users -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/userRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+<!--    <include layout="@layout/banner_eventium"/>-->
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -28,4 +37,3 @@
         app:menu="@menu/bottom_navigation_menu" />
 
 </LinearLayout>
-

@@ -48,6 +48,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.description.setText(event.getDescription());
         holder.location.setText(event.getLocation());
 
+        // Format createdAt with DateTimeFormatter and handle null value
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         // Null check for LocalDateTime fields
