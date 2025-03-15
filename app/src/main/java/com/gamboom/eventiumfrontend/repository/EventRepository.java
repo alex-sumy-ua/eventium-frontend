@@ -40,5 +40,4 @@ public class EventRepository {
         eventApiService.deleteEvent(id).enqueue(callback);
     }
 
-
 }

@@ -1,6 +1,7 @@
 package com.gamboom.eventiumfrontend.network;
 
 import com.gamboom.eventiumfrontend.model.Event;
+
 import java.util.List;
 import java.util.UUID;
 import retrofit2.Call;

@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.gamboom.eventiumfrontend.fragments.EventFragment;
-import com.gamboom.eventiumfrontend.fragments.EventRegistrationFragment;
+import com.gamboom.eventiumfrontend.fragments.RegistrationFragment;
 import com.gamboom.eventiumfrontend.fragments.UserFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (item.getItemId() == R.id.nav_events) {
                 selectedFragment = new EventFragment();
             } else if (item.getItemId() == R.id.nav_event_registrations) {
-                selectedFragment = new EventRegistrationFragment();
+                selectedFragment = new RegistrationFragment();
             }
 
             if (selectedFragment != null) {

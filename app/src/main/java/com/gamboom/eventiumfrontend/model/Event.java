@@ -8,25 +8,18 @@ import java.util.UUID;
 public class Event {
     //    @SerializedName("event_id")
     private UUID eventId;
-
     //    @SerializedName("title")
     private String title;
-
     //    @SerializedName("description")
     private String description;
-
     //    @SerializedName("location")
     private String location;
-
     //    @SerializedName("start_time")
     private LocalDateTime startTime;
-
     //    @SerializedName("end_time")
     private LocalDateTime endTime;
-
     //    @SerializedName("created_by")
     private UUID createdBy;
-
     //    @SerializedName("created_at")
     private LocalDateTime createdAt;
 

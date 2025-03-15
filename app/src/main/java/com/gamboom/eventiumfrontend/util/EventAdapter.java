@@ -25,8 +25,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     private final List<Event> eventList;
     private final Map<UUID, String> userNames;
 
-    public EventAdapter(List<Event> eventList, List<User> userList) {
-        this.eventList = eventList != null ? eventList : new ArrayList<>(); // Prevent NullPointerException
+    public EventAdapter(List<Event> eventList,
+                        List<User> userList) {
+        this.eventList = eventList != null
+                       ? eventList
+                       : new ArrayList<>(); // Prevent NullPointerException
         this.userNames = new HashMap<>();
 
         if (userList != null) { // Prevent NullPointerException
@@ -54,18 +57,16 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
         // Format createdAt with DateTimeFormatter and handle null value
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
         // Null check for LocalDateTime fields
-        holder.startTime.setText(event.getStartTime() != null ? event.getStartTime().format(formatter) : "N/A");
-        holder.endTime.setText(event.getEndTime() != null ? event.getEndTime().format(formatter) : "N/A");
-        holder.createdAt.setText(event.getCreatedAt() != null ? event.getCreatedAt().format(formatter) : "N/A");
-
-        // Default "Unknown" if user not found in the map
-////        String creatorName = userNames.getOrDefault(event.getCreatedBy(), "Unknown");
-////        holder.createdBy.setText(creatorName);
-//        holder.createdBy.setText(userNames.get(event.getCreatedBy() != null ? event.getCreatedBy().toString() : "Unknown"));;
-
-
+        holder.startTime.setText(event.getStartTime() != null
+                                                            ? event.getStartTime().format(formatter)
+                                                            : "N/A");
+        holder.endTime.setText(event.getEndTime() != null
+                                                            ? event.getEndTime().format(formatter)
+                                                            : "N/A");
+        holder.createdAt.setText(event.getCreatedAt() != null
+                                                            ? event.getCreatedAt().format(formatter)
+                                                            : "N/A");
         // Log the createdBy UUID value
         Log.d("EventAdapter", "CreatedBy UUID: " + event.getCreatedBy());
 
@@ -100,7 +101,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         }
     }
 
-    public void updateData(List<Event> newEvents, List<User> userList) {
+    public void updateData(List<Event> newEvents,
+                           List<User> userList) {
 
         // Update the events list
         int previousSize = eventList.size();
