@@ -5,9 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +19,7 @@ import com.gamboom.eventiumfrontend.repository.EventRepository;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
 import com.gamboom.eventiumfrontend.util.EventAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -35,19 +33,24 @@ public class EventFragment extends Fragment {
     private EventRepository eventRepository;
     private UserRepository userRepository;
 
+    private List<Event> events;
+    private List<User> users;
+
     public EventFragment() {
         // Required empty public constructor
     }
 
+    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_event, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view,
+                              @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         // Initialize repositories
@@ -57,55 +60,62 @@ public class EventFragment extends Fragment {
         // Setup RecyclerView
         eventRecyclerView = view.findViewById(R.id.eventRecyclerView);
         eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        eventAdapter = new EventAdapter(null, null);
+
+        // Initialize Adapter with empty lists
+        eventAdapter = new EventAdapter(new ArrayList<>(),
+                                        new ArrayList<>());
         eventRecyclerView.setAdapter(eventAdapter);
 
-        // Fetch events and users from the repository
-        fetchData();
+        // Fetch events and users
+        fetchEvents();
     }
 
-    private void fetchData() {
-
-        // Fetch events
-        eventRepository.getAllEvents(new Callback<List<Event>>() {
-            @Override
-            public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Event> events = response.body();
-                    fetchUsers(events);
-                } else {
-                    //showError("Failed to load events. Please try again.");
-                }
+private void fetchEvents() {
+    eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
+        @Override
+        public void onResponse(@NonNull Call<List<Event>> call,
+                               @NonNull Response<List<Event>> response) {
+            if (response.isSuccessful() && response.body() != null) {
+                events = response.body();
+                fetchUsers();
+            } else {
+                showError("Failed to load events. Please try again.");
             }
+        }
 
-            @Override
-            public void onFailure(Call<List<Event>> call, Throwable t) {
-                // Handle failure, show error message
-                //showError("Network error: Unable to load events.");
-            }
-        });
-    }
+        @Override
+        public void onFailure(@NonNull Call<List<Event>> call,
+                              @NonNull Throwable t) {
+            showError("Network error: Unable to load events.");
+        }
+    });
+}
 
-    private void fetchUsers(List<Event> events) {
-        // Fetch users
+
+    private void fetchUsers() {
         userRepository.getAllUsers().enqueue(new Callback<List<User>>() {
             @Override
-            public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+            public void onResponse(@NonNull Call<List<User>> call,
+                                   @NonNull Response<List<User>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<User> users = response.body();
-                    // Update the adapter with events and users
+                    users = response.body();
                     eventAdapter.updateData(events, users);
                 } else {
-                    //showError("Failed to load users. Please try again.");
+                    Log.e("EventFragment", "Failed to load users. Response code: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<List<User>> call, Throwable t) {
-                // Handle failure, show error message
-                //Log("EventFragment", "Unable to load user list");
+                Log.e("EventFragment", "Network error: Unable to load users.", t);
+                showError("Network error: Unable to load users.");
             }
         });
+    }
+
+    private void showError(String message) {
+        // Implement UI error handling (e.g., Toast, Snackbar, or Log message)
+        Log.e("EventFragment", message);
     }
 
 }

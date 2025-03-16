@@ -22,7 +22,7 @@ import java.util.UUID;
 
 import android.util.Log;
 
-public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapter.EventRegistrationViewHolder> {
+public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapter.RegistrationViewHolder> {
     private final List<Registration> registrationList;
     private final Map<UUID, String> eventTitles;
     private final Map<UUID, String> userNames;
@@ -36,36 +36,35 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         this.eventTitles = new HashMap<>();
         this.userNames = new HashMap<>();
 
-        if (eventList != null) { // Prevent NullPointerException
-            for (Event event : eventList) {
-                eventTitles.put(event.getEventId(), event.getTitle());  // Ensure these getters exist
-            }
-        }
-        Log.d("EventRegistrationAdapter", "List of events: " + eventList);
-
         if (userList != null) { // Prevent NullPointerException
             for (User user : userList) {
                 userNames.put(user.getUserId(), user.getName());  // Ensure these getters exist
             }
         }
-        Log.d("EventRegistrationAdapter", "List of users: " + userList);
+        Log.d("RegistrationAdapter", "List of users: " + userList);
 
+        if (eventList != null) { // Prevent NullPointerException
+            for (Event event : eventList) {
+                eventTitles.put(event.getEventId(), event.getTitle());  // Ensure these getters exist
+            }
+        }
+        Log.d("RegistrationAdapter", "List of events: " + eventList);
     }
 
     @NonNull
     @Override
-    public EventRegistrationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RegistrationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.registration_item, parent, false);
-        return new EventRegistrationViewHolder(view);
+        return new RegistrationViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull EventRegistrationViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RegistrationViewHolder holder, int position) {
         Registration registration = registrationList.get(position);
 
-        // Log the eventId & userId UUID values
-        Log.d("EventRegistrationAdapter", "EventId UUID: " + registration.getEvent().getEventId());
-        Log.d("EventRegistrationAdapter", "UserId UUID: " + registration.getUser().getUserId());
+//        // Log the eventId & userId UUID values
+        Log.d("RegistrationAdapter", "EventId UUID: " + registration.getEvent().getEventId());
+        Log.d("RegistrationAdapter", "UserId UUID: " + registration.getUser().getUserId());
 
         // Check if eventId UUID exists in the map and fetch the title
         if (registration.getEvent() != null &&
@@ -80,6 +79,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         // Check if userId UUID exists in the map and fetch the name
         if (registration.getUser() != null &&
             userNames.containsKey(registration.getUser().getUserId())) {
+
             String userName = userNames.get(registration.getUser().getUserId());
             holder.user.setText(userName);
         } else {
@@ -91,8 +91,8 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         // Null check for LocalDateTime fields
         holder.registrationTime.setText(registration.getRegistrationTime() != null
-                ? registration.getRegistrationTime().format(formatter)
-                : "N/A");
+                                              ? registration.getRegistrationTime().format(formatter)
+                                              : "N/A");
     }
 
     @Override
@@ -100,12 +100,12 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         return registrationList.size();
     }
 
-    static class EventRegistrationViewHolder extends RecyclerView.ViewHolder {
+    static class RegistrationViewHolder extends RecyclerView.ViewHolder {
         TextView event, user, registrationTime;
 
-        public EventRegistrationViewHolder(@NonNull View itemView) {
+        public RegistrationViewHolder(@NonNull View itemView) {
             super(itemView);
-            event = itemView.findViewById(R.id.registrationEventTitle);
+            event = itemView.findViewById(R.id.registrationTitle);
             user = itemView.findViewById(R.id.userName);
             registrationTime = itemView.findViewById(R.id.registrationTime);
         }

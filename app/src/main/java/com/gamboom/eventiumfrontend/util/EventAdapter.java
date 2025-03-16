@@ -37,7 +37,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
                 userNames.put(user.getUserId(), user.getName());  // Ensure these getters exist
             }
         }
-
         Log.d("EventAdapter", "List of users: " + userList);
     }
 
@@ -71,7 +70,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         Log.d("EventAdapter", "CreatedBy UUID: " + event.getCreatedBy());
 
         // Check if createdBy UUID exists in the map and fetch the name
-        if (event.getCreatedBy() != null && userNames.containsKey(event.getCreatedBy())) {
+        if (event.getCreatedBy() != null &&
+            userNames.containsKey(event.getCreatedBy())) {
+
             String creatorName = userNames.get(event.getCreatedBy());
             holder.createdBy.setText(creatorName);
         } else {
