@@ -14,19 +14,19 @@ import retrofit2.http.Path;
 
 public interface RegistrationApiService {
 
-    @POST("event_registrations")
+    @POST("event-registrations")
     Call<Registration> createRegistration(@Body Registration registration);
 
-    @GET("event_registrations")
+    @GET("event-registrations")
     Call<List<Registration>> getAllRegistrations();
 
-    @GET("event_registrations/{id}")
+    @GET("event-registrations/{id}")
     Call<Registration> getRegistrationById(@Path("id") UUID id);
 
-    @PUT("event_registrations/{id}")
+    @PUT("event-registrations/{id}")
     Call<Registration> updateRegistration(@Path("id") UUID id, @Body Registration registration);
 
-    @DELETE("event_registrations/{id}")
+    @DELETE("event-registrations/{id}")
     Call<Void> deleteRegistration(@Path("id") UUID id);
 
 }
