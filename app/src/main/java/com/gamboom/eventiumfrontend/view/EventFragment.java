@@ -1,4 +1,4 @@
-package com.gamboom.eventiumfrontend.fragments;
+package com.gamboom.eventiumfrontend.view;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -17,7 +17,8 @@ import com.gamboom.eventiumfrontend.model.Event;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.EventRepository;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
-import com.gamboom.eventiumfrontend.util.EventAdapter;
+import com.gamboom.eventiumfrontend.service.EventAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,13 @@ public class EventFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_event, container, false);
+
+        View view = inflater.inflate(R.layout.fragment_event, container, false);
+
+        FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
+        fabAdd.setOnClickListener(v -> openAddEventDialog());
+
+        return view;
     }
 
     @Override
@@ -91,7 +98,6 @@ private void fetchEvents() {
     });
 }
 
-
     private void fetchUsers() {
         userRepository.getAllUsers().enqueue(new Callback<List<User>>() {
             @Override
@@ -116,6 +122,11 @@ private void fetchEvents() {
     private void showError(String message) {
         // Implement UI error handling (e.g., Toast, Snackbar, or Log message)
         Log.e("EventFragment", message);
+    }
+
+    private void openAddEventDialog() {
+        AddEventDialogFragment dialog = new AddEventDialogFragment();
+        dialog.show(getParentFragmentManager(), "AddEventDialog");
     }
 
 }

@@ -1,4 +1,4 @@
-package com.gamboom.eventiumfrontend.fragments;
+package com.gamboom.eventiumfrontend.view;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -20,7 +20,8 @@ import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.EventRepository;
 import com.gamboom.eventiumfrontend.repository.RegistrationRepository;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
-import com.gamboom.eventiumfrontend.util.RegistrationAdapter;
+import com.gamboom.eventiumfrontend.service.RegistrationAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -56,7 +57,13 @@ public class RegistrationFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_registration, container, false);
+
+        View view = inflater.inflate(R.layout.fragment_registration, container, false);
+
+        FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
+        fabAdd.setOnClickListener(v -> openAddRegistrationDialog());
+
+        return view;
     }
 
     @Override
@@ -205,6 +212,11 @@ public class RegistrationFragment extends Fragment {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void openAddRegistrationDialog() {
+        AddRegistrationDialogFragment dialog = new AddRegistrationDialogFragment();
+        dialog.show(getParentFragmentManager(), "AddRegistrationDialog");
     }
 
 }

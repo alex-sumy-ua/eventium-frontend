@@ -1,4 +1,4 @@
-package com.gamboom.eventiumfrontend.util;
+package com.gamboom.eventiumfrontend.service;
 
 import android.annotation.SuppressLint;
 import android.view.LayoutInflater;

@@ -1,4 +1,4 @@
-package com.gamboom.eventiumfrontend.util;
+package com.gamboom.eventiumfrontend.service;
 
 import com.google.gson.*;
 import java.lang.reflect.Type;

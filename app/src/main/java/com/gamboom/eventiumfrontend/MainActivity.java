@@ -6,9 +6,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.gamboom.eventiumfrontend.fragments.EventFragment;
-import com.gamboom.eventiumfrontend.fragments.RegistrationFragment;
-import com.gamboom.eventiumfrontend.fragments.UserFragment;
+import com.gamboom.eventiumfrontend.view.EventFragment;
+import com.gamboom.eventiumfrontend.view.RegistrationFragment;
+import com.gamboom.eventiumfrontend.view.UserFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {

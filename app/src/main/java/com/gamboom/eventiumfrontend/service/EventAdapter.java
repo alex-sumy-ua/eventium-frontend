@@ -1,4 +1,4 @@
-package com.gamboom.eventiumfrontend.util;
+package com.gamboom.eventiumfrontend.service;
 
 import android.view.LayoutInflater;
 import android.view.View;

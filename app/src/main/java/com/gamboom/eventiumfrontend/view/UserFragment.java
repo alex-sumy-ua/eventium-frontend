@@ -1,4 +1,4 @@
-package com.gamboom.eventiumfrontend.fragments;
+package com.gamboom.eventiumfrontend.view;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -15,7 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
-import com.gamboom.eventiumfrontend.util.UserAdapter;
+import com.gamboom.eventiumfrontend.service.UserAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.ArrayList;
 import java.util.List;
 import retrofit2.Call;
@@ -33,6 +35,7 @@ public class UserFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         // Inflate the fragment's layout
         View view = inflater.inflate(R.layout.fragment_user, container, false);
 
@@ -47,6 +50,9 @@ public class UserFragment extends Fragment {
         // Initialize repository and fetch users
         userRepository = new UserRepository();
         fetchUsers();
+
+        FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
+        fabAdd.setOnClickListener(v -> openAddUserDialog());
 
         return view;
     }
@@ -82,4 +88,18 @@ public class UserFragment extends Fragment {
             }
         });
     }
+
+    private void showError(String message) {
+        Log.e("RegistrationFragment", message);
+        // Display a Toast or Snackbar to the user
+        if (getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void openAddUserDialog() {
+        AddUserDialogFragment dialog = new AddUserDialogFragment();
+        dialog.show(getParentFragmentManager(), "AddUserDialog");
+    }
+
 }
