@@ -16,7 +16,7 @@
         android:textStyle="bold"
         android:gravity="center"
         android:padding="16dp"
-        android:background="@color/chocolateColor"
+        android:background="@color/chocolate"
         android:textColor="@android:color/white"
         android:fontFamily="@font/eventium_font"/>
 

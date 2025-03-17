@@ -7,21 +7,21 @@ import java.util.UUID;
 
 public class Event {
 
-    //    @SerializedName("event_id")
+        @SerializedName("eventId")
     private UUID eventId;
-    //    @SerializedName("title")
+        @SerializedName("title")
     private String title;
-    //    @SerializedName("description")
+        @SerializedName("description")
     private String description;
-    //    @SerializedName("location")
+        @SerializedName("location")
     private String location;
-    //    @SerializedName("start_time")
+        @SerializedName("startTime")
     private LocalDateTime startTime;
-    //    @SerializedName("end_time")
+        @SerializedName("endTime")
     private LocalDateTime endTime;
-    //    @SerializedName("created_by")
+        @SerializedName("createdBy")
     private UUID createdBy;
-    //    @SerializedName("created_at")
+        @SerializedName("createdAt")
     private LocalDateTime createdAt;
 
     public Event() {}

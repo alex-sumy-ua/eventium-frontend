@@ -19,6 +19,19 @@ public class Registration {
     @SerializedName("registrationDate")
     private LocalDateTime registrationTime;
 
+    public Registration() {
+    }
+
+    public Registration(UUID eventRegistrationId,
+                        UUID eventId,
+                        UUID userId,
+                        LocalDateTime registrationTime) {
+        this.eventRegistrationId = eventRegistrationId;
+        this.eventId = eventId;
+        this.userId = userId;
+        this.registrationTime = registrationTime;
+    }
+
     // Getters and setters
     public UUID getEventRegistrationId() {
         return eventRegistrationId;
