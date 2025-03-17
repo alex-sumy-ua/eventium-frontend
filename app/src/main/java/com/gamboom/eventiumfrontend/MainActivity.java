@@ -42,7 +42,8 @@ public class MainActivity extends AppCompatActivity {
         // Set default fragment if none is already loaded
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new UserFragment())
+//                    .replace(R.id.fragment_container, new UserFragment())
+                    .replace(R.id.fragment_container, new EventFragment())
                     .commit();
         }
     }
