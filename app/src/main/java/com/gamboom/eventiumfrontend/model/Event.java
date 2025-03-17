@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Event {
+
     //    @SerializedName("event_id")
     private UUID eventId;
     //    @SerializedName("title")

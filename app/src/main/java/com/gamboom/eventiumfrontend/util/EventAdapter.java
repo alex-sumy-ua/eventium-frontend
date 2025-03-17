@@ -38,12 +38,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             }
         }
         Log.d("EventAdapter", "List of users: " + userList);
+        Log.d("EventAdapter", "List of names: " + userNames);
     }
 
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.event_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.event_item, parent, false);
         return new EventViewHolder(view);
     }
 
@@ -88,7 +90,13 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     static class EventViewHolder extends RecyclerView.ViewHolder {
-        TextView title, description, location, startTime, endTime, createdAt, createdBy;
+        TextView title;
+        TextView description;
+        TextView location;
+        TextView startTime;
+        TextView endTime;
+        TextView createdAt;
+        TextView createdBy;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);

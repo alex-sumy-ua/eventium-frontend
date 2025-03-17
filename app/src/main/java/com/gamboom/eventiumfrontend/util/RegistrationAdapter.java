@@ -1,5 +1,6 @@
 package com.gamboom.eventiumfrontend.util;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,30 +32,31 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
                                List<Event> eventList,
                                List<User> userList) {
         this.registrationList = registrationList != null
-                                   ? registrationList
-                                   : new ArrayList<>(); // Prevent NullPointerException
+                ? registrationList
+                : new ArrayList<>(); // Prevent NullPointerException
         this.eventTitles = new HashMap<>();
         this.userNames = new HashMap<>();
 
-        if (userList != null) { // Prevent NullPointerException
-            for (User user : userList) {
-                userNames.put(user.getUserId(), user.getName());  // Ensure these getters exist
-            }
-        }
-        Log.d("RegistrationAdapter", "List of users: " + userList);
-
-        if (eventList != null) { // Prevent NullPointerException
+        // Populate eventTitles map with event IDs and their corresponding titles
+        if (eventList != null) {
             for (Event event : eventList) {
-                eventTitles.put(event.getEventId(), event.getTitle());  // Ensure these getters exist
+                eventTitles.put(event.getEventId(), event.getTitle());
             }
         }
-        Log.d("RegistrationAdapter", "List of events: " + eventList);
+
+        // Populate userNames map with user IDs and their corresponding names
+        if (userList != null) {
+            for (User user : userList) {
+                userNames.put(user.getUserId(), user.getName());
+            }
+        }
     }
 
     @NonNull
     @Override
     public RegistrationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.registration_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.registration_item, parent, false);
         return new RegistrationViewHolder(view);
     }
 
@@ -62,65 +64,66 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     public void onBindViewHolder(@NonNull RegistrationViewHolder holder, int position) {
         Registration registration = registrationList.get(position);
 
-//        // Log the eventId & userId UUID values
-        Log.d("RegistrationAdapter", "EventId UUID: " + registration.getEvent().getEventId());
-        Log.d("RegistrationAdapter", "UserId UUID: " + registration.getUser().getUserId());
-
-        // Check if eventId UUID exists in the map and fetch the title
-        if (registration.getEvent() != null &&
-            eventTitles.containsKey(registration.getEvent().getEventId())) {
-            String eventTitle = eventTitles.get(registration.getEvent().getEventId());
-            holder.event.setText(eventTitle);
-        } else {
-            // If no event is found in the map, set "Unknown"
-            holder.event.setText("Unknown");
+        // Retrieve user name and event title from maps with null checks
+        String userName = "Unknown User";
+        if (registration.getUserId() != null) {
+            userName = userNames.getOrDefault(registration.getUserId(), "Unknown User");
         }
 
-        // Check if userId UUID exists in the map and fetch the name
-        if (registration.getUser() != null &&
-            userNames.containsKey(registration.getUser().getUserId())) {
-
-            String userName = userNames.get(registration.getUser().getUserId());
-            holder.user.setText(userName);
-        } else {
-            // If no user is found in the map, set "Unknown"
-            holder.user.setText("Unknown");
+        String eventTitle = "Unknown Event";
+        if (registration.getEventId() != null) {
+            eventTitle = eventTitles.getOrDefault(registration.getEventId(), "Unknown Event");
         }
 
-        // Format createdAt with DateTimeFormatter and handle null value
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        // Null check for LocalDateTime fields
-        holder.registrationTime.setText(registration.getRegistrationTime() != null
-                                              ? registration.getRegistrationTime().format(formatter)
-                                              : "N/A");
+        // Format registration date with null check
+        String formattedDate = "N/A";
+        if (registration.getRegistrationTime() != null) {
+            formattedDate = registration.getRegistrationTime()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        }
+
+        // Set text values
+        holder.eventTitleTextView.setText(eventTitle);
+        holder.userNameTextView.setText(userName);
+        holder.registrationTimeTextView.setText(formattedDate);
+
+        // Log the final values being set
+        Log.d("RegistrationAdapter", "User Name: " + userName);
+        Log.d("RegistrationAdapter", "Event Title: " + eventTitle);
+        Log.d("RegistrationAdapter", "Registration Time: " + formattedDate);
     }
-
     @Override
     public int getItemCount() {
         return registrationList.size();
     }
 
-    static class RegistrationViewHolder extends RecyclerView.ViewHolder {
-        TextView event, user, registrationTime;
+    public static class RegistrationViewHolder extends RecyclerView.ViewHolder {
+        TextView eventTitleTextView;
+        TextView userNameTextView;
+        TextView registrationTimeTextView;
 
         public RegistrationViewHolder(@NonNull View itemView) {
             super(itemView);
-            event = itemView.findViewById(R.id.registrationTitle);
-            user = itemView.findViewById(R.id.userName);
-            registrationTime = itemView.findViewById(R.id.registrationTime);
+            eventTitleTextView = itemView.findViewById(R.id.eventTitleTextView);
+            userNameTextView = itemView.findViewById(R.id.userNameTextView);
+            registrationTimeTextView = itemView.findViewById(R.id.registrationTimeTextView);
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     public void updateData(List<Registration> newRegistrations,
                            List<Event> newEvents,
                            List<User> newUsers) {
 
+        Log.d("RegistrationAdapter", "New Registrations: " + newRegistrations.size());
+        Log.d("RegistrationAdapter", "New Events: " + (newEvents != null ? newEvents.size() : 0));
+        Log.d("RegistrationAdapter", "New Users: " + (newUsers != null ? newUsers.size() : 0));
+
         // Update the registrations list
-        int previousSize = registrationList.size();
         registrationList.clear();
         registrationList.addAll(newRegistrations);
 
-        // Update the events list
+        // Update the eventTitles map
         eventTitles.clear();
         if (newEvents != null) {
             for (Event event : newEvents) {
@@ -137,7 +140,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         }
 
         // Notify the adapter of changes
-        notifyItemRangeInserted(previousSize, newRegistrations.size());
+        notifyDataSetChanged();
     }
 
 }

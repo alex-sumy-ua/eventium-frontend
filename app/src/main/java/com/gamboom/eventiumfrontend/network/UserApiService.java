@@ -29,4 +29,5 @@ public interface UserApiService {
 
     @DELETE("users/{id}")
     Call<Void> deleteUser(@Path("id") UUID id);
+
 }

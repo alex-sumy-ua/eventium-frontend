@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:padding="8dp">
 
+    <!-- text_user TextView remains untouched -->
     <TextView
         android:id="@+id/text_user"
         android:layout_width="wrap_content"
@@ -16,8 +17,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- userNameTextView with improved spacing -->
     <TextView
-        android:id="@+id/userName"
+        android:id="@+id/userNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Name"
@@ -26,8 +28,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_user"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="2dp" />
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp" />
 
+    <!-- userEmail with improved spacing -->
     <TextView
         android:id="@+id/userEmail"
         android:layout_width="0dp"
@@ -35,10 +39,11 @@
         android:text="Email"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/userName"
+        app:layout_constraintTop_toBottomOf="@id/userNameTextView"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="2dp" />
+        android:layout_marginBottom="4dp" />
 
+    <!-- userRole with improved spacing -->
     <TextView
         android:id="@+id/userRole"
         android:layout_width="0dp"
@@ -48,8 +53,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userEmail"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="2dp" /> <!-- Removed constraintBottom_toBottomOf -->
+        android:layout_marginBottom="4dp" />
 
+    <!-- userCreatedAt with improved spacing -->
     <TextView
         android:id="@+id/userCreatedAt"
         android:layout_width="0dp"
@@ -59,6 +65,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userRole"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="8dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

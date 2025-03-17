@@ -1,29 +1,25 @@
 package com.gamboom.eventiumfrontend.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Registration {
 
-//    @SerializedName("event_registration_id")
+    @SerializedName("event_registration_id")
     private UUID eventRegistrationId;
-//    @SerializedName("user")
-    private User user;
-//    @SerializedName("event")
-    private Event event;
-//    @SerializedName("registration_time")
+
+    @SerializedName("eventId")
+    private UUID eventId; // Only the event ID is provided
+
+    @SerializedName("userId")
+    private UUID userId; // Only the user ID is provided
+
+    @SerializedName("registrationDate")
     private LocalDateTime registrationTime;
 
-    public Registration() {
-    }
-
-    public Registration(UUID eventRegistrationId, User user, Event event, LocalDateTime registrationTime) {
-        this.eventRegistrationId = eventRegistrationId;
-        this.user = user;
-        this.event = event;
-        this.registrationTime = registrationTime;
-    }
-
+    // Getters and setters
     public UUID getEventRegistrationId() {
         return eventRegistrationId;
     }
@@ -32,20 +28,20 @@ public class Registration {
         this.eventRegistrationId = eventRegistrationId;
     }
 
-    public User getUser() {
-        return user;
+    public UUID getEventId() {
+        return eventId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setEventId(UUID eventId) {
+        this.eventId = eventId;
     }
 
-    public Event getEvent() {
-        return event;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public void setEvent(Event event) {
-        this.event = event;
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public LocalDateTime getRegistrationTime() {

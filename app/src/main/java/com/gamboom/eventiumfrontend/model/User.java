@@ -7,11 +7,17 @@ import com.google.gson.annotations.SerializedName;
 
 public class User {
 
+    //    @SerializedName("user_id")
     private UUID userId;
+    //    @SerializedName("name")
     private String name;
+    //    @SerializedName("email")
     private String email;
+    //    @SerializedName("password")
     private String password;
+    //    @SerializedName("role")
     private Role role;
+    //    @SerializedName("created_at")
     private LocalDateTime createdAt;
 
     public User() {

@@ -28,4 +28,5 @@ public interface EventApiService {
 
     @DELETE("events/{id}")
     Call<Void> deleteEvent(@Path("id") UUID id);
+
 }
