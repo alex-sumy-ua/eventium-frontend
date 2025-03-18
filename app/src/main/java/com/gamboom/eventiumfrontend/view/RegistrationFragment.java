@@ -23,6 +23,7 @@ import com.gamboom.eventiumfrontend.repository.UserRepository;
 import com.gamboom.eventiumfrontend.service.RegistrationAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,8 +43,8 @@ public class RegistrationFragment extends Fragment {
     private UserRepository userRepository;
 
     private List<Registration> registrations;
-    private final List<Event> events = new ArrayList<>(); // Initialize the list
-    private final List<User> users = new ArrayList<>(); // Initialize the list
+    private final List<Event> events = new ArrayList<>(); // Initialise the list
+    private final List<User> users = new ArrayList<>(); // Initialise the list
 
     private final Set<UUID> uniqueUserIds = new HashSet<>();
     private final Set<UUID> uniqueEventIds = new HashSet<>();
@@ -219,4 +220,40 @@ public class RegistrationFragment extends Fragment {
         dialog.show(getParentFragmentManager(), "AddRegistrationDialog");
     }
 
+    public void addRegistrationToDatabase(String eventTitle,
+                                          UUID userId) {
+
+        // Create a new Registration object with the provided data
+        Registration newRegistration = new Registration();
+
+        for (Event event : events) {
+            if (event.getTitle().equals(eventTitle)) {
+                newRegistration.setEventId(event.getEventId());
+            }
+        }
+        newRegistration.setRegistrationTime(LocalDateTime.now());
+        newRegistration.setUserId(userId);
+
+        // Call the API method in the RegistrationRepository to create a new registration
+        registrationRepository.createRegistration(newRegistration).enqueue(new Callback<Registration>() {
+            @Override
+            public void onResponse(Call<Registration> call, Response<Registration> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(getContext(), "Registration added successfully", Toast.LENGTH_SHORT).show();
+                    fetchRegistrations(); // Optionally, update the UI or fetch the latest registrations
+                } else {
+                    Log.e("RegistrationFragment", "Failed to add registration. Response code: " + response.code());
+                    Toast.makeText(getContext(), "Failed to add registration", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Registration> call, Throwable t) {
+                Log.e("RegistrationFragment", "Error adding registration", t);
+                Toast.makeText(getContext(), "Error adding registration", Toast.LENGTH_SHORT).show();
+            }
+
+        });
+
+    }
 }

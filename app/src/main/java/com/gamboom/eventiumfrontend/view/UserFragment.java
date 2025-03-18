@@ -13,11 +13,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.gamboom.eventiumfrontend.R;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
 import com.gamboom.eventiumfrontend.service.UserAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import retrofit2.Call;
@@ -100,6 +102,57 @@ public class UserFragment extends Fragment {
     private void openAddUserDialog() {
         AddUserDialogFragment dialog = new AddUserDialogFragment();
         dialog.show(getParentFragmentManager(), "AddUserDialog");
+    }
+
+    public void addUserToDatabase(String name,
+                                  String email,
+                                  String role) {
+        // Create a new User object with the provided data
+        User newUser = new User();
+        newUser.setName(name);
+        newUser.setEmail(email);
+        // Handle potential invalid role input
+        try {
+            newUser.setRole(Role.valueOf(role));
+        } catch (IllegalArgumentException e) {
+            // Handle invalid role
+            Log.e("UserFragment", "Invalid role: " + role);
+            Toast.makeText(getContext(), "Invalid role provided", Toast.LENGTH_SHORT).show();
+            return; // Stop further execution if role is invalid
+        }
+        newUser.setPassword("GITHUB_OAUTHENTICATION");
+        newUser.setCreatedAt(LocalDateTime.now());
+
+        // Call the addUser API method in the UserRepository
+        userRepository.createUser(newUser).enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                Context context = getContext();
+                if (context != null) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        // User successfully added
+                        Toast.makeText(context, "User added successfully", Toast.LENGTH_SHORT).show();
+
+                        // Optionally, update the UI or fetch the latest user list
+                        fetchUsers();
+                    } else {
+                        // Handle the error response
+                        Log.e("UserFragment", "Failed to add user. Response code: " + response.code());
+                        Toast.makeText(context, "Failed to add user", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+            }
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Context context = getContext();
+                if (context != null) {
+                    Toast.makeText(context, "Error adding user", Toast.LENGTH_SHORT).show();
+                }
+                // Log the error for debugging
+                Log.e("UserFragment", "API call failed", t);
+            }
+        });
     }
 
 }
