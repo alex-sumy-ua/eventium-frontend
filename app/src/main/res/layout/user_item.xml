@@ -1,23 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
-    <!-- text_user TextView remains untouched -->
-    <TextView
-        android:id="@+id/text_user"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="User"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- userNameTextView with improved spacing -->
+    <!-- User Name -->
     <TextView
         android:id="@+id/userNameTextView"
         android:layout_width="0dp"
@@ -25,45 +17,44 @@
         android:text="Name"
         android:textSize="18sp"
         android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_user"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginBottom="8dp" />
 
-    <!-- userEmail with improved spacing -->
+    <!-- User Email -->
     <TextView
         android:id="@+id/userEmail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Email"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userNameTextView"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginBottom="8dp" />
 
-    <!-- userRole with improved spacing -->
+    <!-- User Role -->
     <TextView
         android:id="@+id/userRole"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Role"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userEmail"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        android:layout_marginBottom="8dp" />
 
-    <!-- userCreatedAt with improved spacing -->
+    <!-- User Created At -->
     <TextView
         android:id="@+id/userCreatedAt"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Created At"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userRole"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="8dp" />

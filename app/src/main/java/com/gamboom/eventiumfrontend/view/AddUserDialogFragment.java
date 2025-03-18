@@ -16,10 +16,39 @@ import androidx.fragment.app.DialogFragment;
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Role;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AddUserDialogFragment extends DialogFragment {
     private EditText etUserName, etEmail;
     private Spinner spinnerRole;
     private Button btnSave, btnCancel;
+
+    private Role currentUserRole; // Track the current user's role
+    private UserFragment parentFragment; // Reference to the parent fragment
+
+    // Method to set the current user's role
+    public void setCurrentUserRole(Role currentUserRole) {
+        this.currentUserRole = currentUserRole;
+    }
+
+    // Method to set the parent fragment
+    public void setParentFragment(UserFragment parentFragment) {
+        this.parentFragment = parentFragment;
+    }
+
+@Override
+public void onStart() {
+    super.onStart();
+
+    // Set the dialog's width and height
+    if (getDialog() != null && getDialog().getWindow() != null) {
+        getDialog().getWindow().setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT, // Width
+            ViewGroup.LayoutParams.WRAP_CONTENT  // Height
+        );
+    }
+}    
 
     @Nullable
     @Override
@@ -35,22 +64,16 @@ public class AddUserDialogFragment extends DialogFragment {
         btnSave = view.findViewById(R.id.btn_save);
         btnCancel = view.findViewById(R.id.btn_cancel);
 
-//        // Populate the Spinner with roles
-//        String[] roles = {"ADMIN", "STAFF", "MEMBER"};
-//        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-//                                       android.R.layout.simple_spinner_dropdown_item, roles);
-//        spinnerRole.setAdapter(adapter);
-
-        // Populate the Spinner with roles from the Role enum
-        Role[] roles = Role.values(); // Get all enum values
-        String[] roleNames = new String[roles.length];
-        for (int i = 0; i < roles.length; i++) {
-            roleNames[i] = roles[i].name(); // Extract the role names (e.g., "ADMIN", "STAFF")
+        // Populate the Spinner with roles based on the current user's role
+        if (currentUserRole != null) {
+            List<String> allowedRoles = getAllowedRoles(currentUserRole);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item, allowedRoles);
+            spinnerRole.setAdapter(adapter);
+        } else {
+            Toast.makeText(getActivity(), "Current user role is not set", Toast.LENGTH_SHORT).show();
+            dismiss(); // Close the dialog if the role is not set
         }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_dropdown_item, roleNames);
-        spinnerRole.setAdapter(adapter);
 
         // Set button actions
         btnCancel.setOnClickListener(v -> dismiss());
@@ -61,16 +84,39 @@ public class AddUserDialogFragment extends DialogFragment {
             String selectedRole = spinnerRole.getSelectedItem().toString(); // Get selected role
 
             if (!username.isEmpty() && !email.isEmpty()) {
-                assert getParentFragment() != null;
-                ((UserFragment) getParentFragment()).addUserToDatabase(username,
-                                                                       email,
-                                                                       selectedRole);
-                dismiss();
+                if (parentFragment != null) {
+                    parentFragment.addUserToDatabase(username, email, selectedRole);
+                    dismiss();
+                } else {
+                    Toast.makeText(getActivity(), "Parent fragment is not set", Toast.LENGTH_SHORT).show();
+                }
             } else {
                 Toast.makeText(getActivity(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             }
         });
 
         return view;
+    }
+
+    // Method to determine allowed roles based on the current user's role
+    private List<String> getAllowedRoles(Role currentUserRole) {
+        List<String> allowedRoles = new ArrayList<>();
+
+        switch (currentUserRole) {
+            case ADMIN:
+                allowedRoles.add(Role.ADMIN.name());
+                allowedRoles.add(Role.STAFF.name());
+                allowedRoles.add(Role.MEMBER.name());
+                break;
+            case STAFF:
+                allowedRoles.add(Role.STAFF.name());
+                allowedRoles.add(Role.MEMBER.name());
+                break;
+            case MEMBER:
+                // MEMBER cannot create any users, so the list remains empty
+                break;
+        }
+
+        return allowedRoles;
     }
 }

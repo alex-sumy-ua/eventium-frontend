@@ -1,17 +1,18 @@
 package com.gamboom.eventiumfrontend.view;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
@@ -22,6 +23,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -31,6 +34,8 @@ public class UserFragment extends Fragment {
     private RecyclerView recyclerView;
     private UserAdapter userAdapter;
     private UserRepository userRepository;
+
+    private UUID currentUserId;
 
     @Nullable
     @Override
@@ -46,7 +51,10 @@ public class UserFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Initialize adapter with an empty list
-        userAdapter = new UserAdapter(new ArrayList<>());
+        userAdapter = new UserAdapter(new ArrayList<>(), user -> {
+            // Handle user click (e.g., open user details or edit dialog)
+            Toast.makeText(getContext(), "Clicked: " + user.getName(), Toast.LENGTH_SHORT).show();
+        });
         recyclerView.setAdapter(userAdapter);
 
         // Initialize repository and fetch users
@@ -63,45 +71,41 @@ public class UserFragment extends Fragment {
         userRepository.getAllUsers().enqueue(new Callback<List<User>>() {
             @Override
             public void onResponse(Call<List<User>> call, Response<List<User>> response) {
-                Context context = getContext(); // Prevent null context
-                if (context != null) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        if (!response.body().isEmpty()) {
-                            userAdapter.updateData(response.body());
-                        } else {
-                            Toast.makeText(context, "No users found", Toast.LENGTH_SHORT).show();
-                        }
+                if (response.isSuccessful() && response.body() != null) {
+                    if (!response.body().isEmpty()) {
+                        userAdapter.updateData(response.body()); // Update the adapter with new data
                     } else {
-                        // Log response details for debugging
-                        Log.e("UserFragment", "Failed to load users. Response code: " + response.code());
-                        Toast.makeText(context, "Failed to load users", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "No users found", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Log.e("UserFragment", "Failed to load users. Response code: " + response.code());
+                    Toast.makeText(getContext(), "Failed to load users", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<User>> call, Throwable t) {
-                Context context = getContext();
-                if (context != null) {
-                    Toast.makeText(context, "Error loading users", Toast.LENGTH_SHORT).show();
-                }
-                // Log the error for debugging
                 Log.e("UserFragment", "API call failed", t);
+                Toast.makeText(getContext(), "Error loading users", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void showError(String message) {
-        Log.e("RegistrationFragment", message);
-        // Display a Toast or Snackbar to the user
-        if (getContext() != null) {
-            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-        }
-    }
-
     private void openAddUserDialog() {
         AddUserDialogFragment dialog = new AddUserDialogFragment();
+
+        // Set the current user's role (replace this with your logic to get the current user's role)
+        Role currentUserRole = getCurrentUserRole(); // Example: Replace with actual logic
+        dialog.setCurrentUserRole(currentUserRole);
+
+        // Set the parent fragment
+        dialog.setParentFragment(this);
+
         dialog.show(getParentFragmentManager(), "AddUserDialog");
+    }
+
+    private Role getCurrentUserRole() {
+        return Role.ADMIN;
     }
 
     public void addUserToDatabase(String name,
@@ -111,46 +115,25 @@ public class UserFragment extends Fragment {
         User newUser = new User();
         newUser.setName(name);
         newUser.setEmail(email);
-        // Handle potential invalid role input
-        try {
-            newUser.setRole(Role.valueOf(role));
-        } catch (IllegalArgumentException e) {
-            // Handle invalid role
-            Log.e("UserFragment", "Invalid role: " + role);
-            Toast.makeText(getContext(), "Invalid role provided", Toast.LENGTH_SHORT).show();
-            return; // Stop further execution if role is invalid
-        }
-        newUser.setPassword("GITHUB_OAUTHENTICATION");
+        newUser.setRole(Role.valueOf(role)); // Ensure role is valid
+        newUser.setPassword("GITHUB_OAUTHENTICATION"); // Replace with actual password logic
         newUser.setCreatedAt(LocalDateTime.now());
 
-        // Call the addUser API method in the UserRepository
+        // Call the API to create the user
         userRepository.createUser(newUser).enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                Context context = getContext();
-                if (context != null) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        // User successfully added
-                        Toast.makeText(context, "User added successfully", Toast.LENGTH_SHORT).show();
-
-                        // Optionally, update the UI or fetch the latest user list
-                        fetchUsers();
-                    } else {
-                        // Handle the error response
-                        Log.e("UserFragment", "Failed to add user. Response code: " + response.code());
-                        Toast.makeText(context, "Failed to add user", Toast.LENGTH_SHORT).show();
-                    }
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(getContext(), "User added successfully", Toast.LENGTH_SHORT).show();
+                    fetchUsers(); // Refresh the user list
+                } else {
+                    Toast.makeText(getContext(), "Failed to add user", Toast.LENGTH_SHORT).show();
                 }
-
             }
+
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                Context context = getContext();
-                if (context != null) {
-                    Toast.makeText(context, "Error adding user", Toast.LENGTH_SHORT).show();
-                }
-                // Log the error for debugging
-                Log.e("UserFragment", "API call failed", t);
+                Toast.makeText(getContext(), "Error adding user", Toast.LENGTH_SHORT).show();
             }
         });
     }

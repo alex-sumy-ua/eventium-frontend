@@ -18,17 +18,21 @@ import java.util.List;
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
     private List<User> users;
+    private OnUserClickListener listener;
 
-    public UserAdapter(List<User> users) {
-        this.users = users != null ? users : new ArrayList<>(); // Prevent null pointer exception
+    public interface OnUserClickListener {
+        void onUserClick(User user);
     }
 
-    // Method to update the user data when fetched
-    public void updateData(List<User> newUsers) {
-        if (newUsers != null) {
-            this.users = newUsers;
-            notifyDataSetChanged();  // Notify the adapter that the data has been updated
-        }
+    // Constructor with listener
+    public UserAdapter(List<User> users, OnUserClickListener listener) {
+        this.users = users != null ? users : new ArrayList<>();
+        this.listener = listener;
+    }
+
+    // Constructor without listener (for backward compatibility)
+    public UserAdapter(List<User> users) {
+        this(users, null);
     }
 
     @NonNull
@@ -43,18 +47,29 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         User user = users.get(position);
         holder.userName.setText(user.getName());
         holder.userEmail.setText(user.getEmail());
-
-        // Handle null and format the enum Role value
         holder.userRole.setText(user.getRole() != null ? user.getRole().toString() : "Unknown");
 
-        // Format createdAt with DateTimeFormatter and handle null value
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         holder.userCreatedAt.setText(user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "N/A");
+
+        // Set click listener if listener is not null
+        if (listener != null) {
+            holder.itemView.setOnClickListener(v -> listener.onUserClick(user));
+        }
     }
 
     @Override
     public int getItemCount() {
-        return users != null ? users.size() : 0; // Return 0 if users is null
+        return users != null ? users.size() : 0;
+    }
+
+    // Method to update the user data
+    public void updateData(List<User> newUsers) {
+        if (newUsers != null) {
+            this.users.clear();
+            this.users.addAll(newUsers);
+            notifyDataSetChanged(); // Notify the adapter that the data has changed
+        }
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
@@ -68,4 +83,5 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             userCreatedAt = itemView.findViewById(R.id.userCreatedAt);
         }
     }
+
 }
