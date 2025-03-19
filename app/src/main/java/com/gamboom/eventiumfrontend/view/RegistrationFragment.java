@@ -49,6 +49,8 @@ public class RegistrationFragment extends Fragment {
     private final Set<UUID> uniqueUserIds = new HashSet<>();
     private final Set<UUID> uniqueEventIds = new HashSet<>();
 
+    private UUID currentUserId = UUID.fromString("3196683f-1653-4918-97fa-f85b109f42d5");
+
     public RegistrationFragment() {
         // Required empty public constructor
     }
@@ -116,6 +118,13 @@ public class RegistrationFragment extends Fragment {
                         }
                     }
 
+                    // Ensure currentUserId is included in the list
+                    if (currentUserId != null) {
+                        uniqueUserIds.add(currentUserId);
+                    }
+
+                    Log.d("RegistrationFragment", "Unique User IDs: " + uniqueUserIds);
+
                     // Fetch events and users
                     fetchEventsByIds(new ArrayList<>(uniqueEventIds));
                     fetchUsersByIds(new ArrayList<>(uniqueUserIds));
@@ -161,27 +170,30 @@ public class RegistrationFragment extends Fragment {
     }
 
     private void fetchUsersByIds(List<UUID> userIds) {
+        Log.d("RegistrationFragment", "Fetching users for IDs: " + userIds);
+
         for (UUID userId : userIds) {
             userRepository.getUserById(userId).enqueue(new Callback<User>() {
                 @Override
-                public void onResponse(@NonNull Call<User> call,
-                                       @NonNull Response<User> response) {
+                public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        users.add(response.body());
-                        Log.d("RegistrationFragment", "User fetched: " + response.body().getName());
+                        User user = response.body();
+                        users.add(user);
+                        Log.d("RegistrationFragment", "User fetched: " + user.getName() + ", ID: " + user.getUserId());
 
                         // Check if all users have been fetched
                         if (users.size() == userIds.size()) {
                             updateAdapterIfReady();
                         }
                     } else {
+                        Log.e("RegistrationFragment", "Failed to load user. Response code: " + response.code());
                         showError("Failed to load user. Response code: " + response.code());
                     }
                 }
 
                 @Override
-                public void onFailure(@NonNull Call<User> call,
-                                      @NonNull Throwable t) {
+                public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
+                    Log.e("RegistrationFragment", "Network error: Unable to load user. Error: " + t.getMessage());
                     showError("Network error: Unable to load user. Error: " + t.getMessage());
                 }
             });
@@ -217,22 +229,35 @@ public class RegistrationFragment extends Fragment {
 
     private void openAddRegistrationDialog() {
         AddRegistrationDialogFragment dialog = new AddRegistrationDialogFragment();
-        dialog.show(getParentFragmentManager(), "AddRegistrationDialog");
+
+        // Ensure currentUser is set properly
+        if (currentUserId != null) {
+            User currentUser = null;
+            for (User user : users) {
+                if (user.getUserId().equals(currentUserId)) {
+                    currentUser = user;
+                    break;
+                }
+            }
+
+            if (currentUser != null) {
+                dialog.setCurrentUser(currentUser);
+                dialog.setParentFragment(this); // Pass the parent fragment
+                dialog.show(getParentFragmentManager(), "AddRegistrationDialog");
+            } else {
+                Toast.makeText(getContext(), "Current user not found", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    public void addRegistrationToDatabase(String eventTitle,
-                                          UUID userId) {
-
+    public void addRegistrationToDatabase(UUID eventId, UUID userId) {
         // Create a new Registration object with the provided data
         Registration newRegistration = new Registration();
-
-        for (Event event : events) {
-            if (event.getTitle().equals(eventTitle)) {
-                newRegistration.setEventId(event.getEventId());
-            }
-        }
-        newRegistration.setRegistrationTime(LocalDateTime.now());
+        newRegistration.setEventId(eventId);
         newRegistration.setUserId(userId);
+        newRegistration.setRegistrationTime(LocalDateTime.now());
 
         // Call the API method in the RegistrationRepository to create a new registration
         registrationRepository.createRegistration(newRegistration).enqueue(new Callback<Registration>() {
@@ -240,9 +265,10 @@ public class RegistrationFragment extends Fragment {
             public void onResponse(Call<Registration> call, Response<Registration> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getContext(), "Registration added successfully", Toast.LENGTH_SHORT).show();
-                    fetchRegistrations(); // Optionally, update the UI or fetch the latest registrations
+                    fetchRegistrations(); // Refresh the list
                 } else {
                     Log.e("RegistrationFragment", "Failed to add registration. Response code: " + response.code());
+                    Log.e("RegistrationFragment", "Response body: " + response.errorBody());
                     Toast.makeText(getContext(), "Failed to add registration", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -252,8 +278,7 @@ public class RegistrationFragment extends Fragment {
                 Log.e("RegistrationFragment", "Error adding registration", t);
                 Toast.makeText(getContext(), "Error adding registration", Toast.LENGTH_SHORT).show();
             }
-
         });
-
     }
+
 }

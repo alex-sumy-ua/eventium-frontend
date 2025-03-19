@@ -1,160 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".view.AddEventDialogFragment">
+    android:padding="16dp">
 
-    <!-- Event Title -->
-    <TextView
-        android:id="@+id/tv_event_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Event Title"
-        android:textSize="16sp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:paddingBottom="8dp"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/et_eventtitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Enter event title"
-        android:inputType="text"
-        android:textColor="#000000"
-        app:layout_constraintTop_toBottomOf="@id/tv_event_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
+        <!-- Event Spinner -->
+        <Spinner
+            android:id="@+id/eventSpinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:minHeight="48dp" />
 
-    <!-- Event Description -->
-    <TextView
-        android:id="@+id/tv_event_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Event Description"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/et_eventtitle"
-        app:layout_constraintStart_toStartOf="parent"
-        android:paddingBottom="8dp"/>
+        <!-- Event Description -->
+        <TextView
+            android:id="@+id/eventDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Description"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/eventSpinner"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
 
-    <EditText
-        android:id="@+id/et_eventdescription"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Enter event description"
-        android:inputType="textMultiLine"
-        android:textColor="#000000"
-        app:layout_constraintTop_toBottomOf="@id/tv_event_description"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
+        <!-- Event Time -->
+        <TextView
+            android:id="@+id/eventTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Time"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/eventDescription"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp" />
 
-    <!-- Event Location -->
-    <TextView
-        android:id="@+id/tv_event_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Event Location"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/et_eventdescription"
-        app:layout_constraintStart_toStartOf="parent"
-        android:paddingBottom="8dp"/>
+        <!-- Event Location -->
+        <TextView
+            android:id="@+id/eventLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/eventTime"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp" />
 
-    <EditText
-        android:id="@+id/et_eventlocation"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Enter event location"
-        android:inputType="text"
-        android:textColor="#000000"
-        app:layout_constraintTop_toBottomOf="@id/tv_event_location"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
+        <!-- Register Button -->
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Register"
+            app:layout_constraintTop_toBottomOf="@id/eventLocation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="24dp"
+            android:minHeight="48dp" />
 
-    <!-- Start Date and Time -->
-    <TextView
-        android:id="@+id/tv_event_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Event Start"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/et_eventlocation"
-        app:layout_constraintStart_toStartOf="parent"
-        android:paddingBottom="8dp"/>
-
-    <DatePicker
-        android:id="@+id/date_picker_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/tv_event_start"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TimePicker
-        android:id="@+id/time_picker_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:timePickerMode="clock"
-        app:layout_constraintTop_toBottomOf="@id/date_picker_start"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- End Date and Time -->
-    <TextView
-        android:id="@+id/tv_event_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Event End"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/time_picker_start"
-        app:layout_constraintStart_toStartOf="parent"
-        android:paddingBottom="8dp"/>
-
-    <DatePicker
-        android:id="@+id/date_picker_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/tv_event_end"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TimePicker
-        android:id="@+id/time_picker_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:timePickerMode="clock"
-        app:layout_constraintTop_toBottomOf="@id/date_picker_end"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Buttons -->
-    <Button
-        android:id="@+id/btn_save"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Save"
-        app:layout_constraintTop_toBottomOf="@id/time_picker_end"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_cancel"
-        app:layout_constraintHorizontal_chainStyle="spread"
-        android:layout_marginTop="16dp"/>
-
-    <Button
-        android:id="@+id/btn_cancel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Cancel"
-        app:layout_constraintTop_toBottomOf="@id/time_picker_end"
-        app:layout_constraintStart_toEndOf="@id/btn_save"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Cancel Button -->
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            app:layout_constraintTop_toBottomOf="@id/btn_save"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"
+            android:minHeight="48dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

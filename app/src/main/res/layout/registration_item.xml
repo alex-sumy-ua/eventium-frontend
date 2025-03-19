@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
-    <!-- text_registration TextView remains untouched -->
+    <!-- Registration Title -->
     <TextView
         android:id="@+id/text_registration"
         android:layout_width="wrap_content"
@@ -17,43 +21,42 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Updated eventTitleTextView with improved constraints and margins -->
+    <!-- Event Title -->
     <TextView
         android:id="@+id/eventTitleTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Title"
+        android:text="Event Title"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_registration"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="4dp" />
 
-    <!-- Updated userNameTextView with improved constraints and margins -->
+    <!-- User Name -->
     <TextView
         android:id="@+id/userNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="User Name"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/eventTitleTextView"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="4dp" />
 
-    <!-- Updated registrationTimeTextView with improved constraints and margins -->
+    <!-- Registration Time -->
     <TextView
         android:id="@+id/registrationTimeTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Registration Time"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/userNameTextView"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="8dp" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
