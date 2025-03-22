@@ -8,4 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="chocolate">#8C4205</color> <!-- Chocolate brown -->
+    <color name="github_black">#000000</color>
+    <color name="red">#F44336</color>
 </resources>

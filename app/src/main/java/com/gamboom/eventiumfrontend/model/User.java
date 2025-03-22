@@ -2,23 +2,30 @@ package com.gamboom.eventiumfrontend.model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 import com.google.gson.annotations.SerializedName;
 
 public class User {
 
-        @SerializedName("userId")
+    @SerializedName("userId")
     private UUID userId;
-        @SerializedName("name")
+
+    @SerializedName("name")
     private String name;
-        @SerializedName("email")
+
+    @SerializedName("email")
     private String email;
-        @SerializedName("password")
+
+    @SerializedName("password")
     private String password;
-        @SerializedName("role")
+
+    @SerializedName("role")
     private Role role;
-        @SerializedName("createdAt")
+
+    @SerializedName("createdAt")
     private LocalDateTime createdAt;
+
+    @SerializedName("token") // ✅ Added token field
+    private String token;
 
     public User() {
     }
@@ -28,13 +35,15 @@ public class User {
                 String email,
                 String password,
                 Role role,
-                LocalDateTime createdAt) {
+                LocalDateTime createdAt,
+                String token) { // ✅ Updated constructor
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
         this.createdAt = createdAt;
+        this.token = token;
     }
 
     public UUID getUserId() {
@@ -83,5 +92,13 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getToken() { // ✅ Getter for token
+        return token;
+    }
+
+    public void setToken(String token) { // ✅ Setter for token
+        this.token = token;
     }
 }

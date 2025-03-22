@@ -83,11 +83,10 @@ public class AddEventDialogFragment extends DialogFragment {
             if (!eventTitle.isEmpty() && !eventLocation.isEmpty() && eventStartTime != null) {
                 if (parentFragment != null) {
                     parentFragment.addEventToDatabase(eventTitle,
-                            eventDescription,
-                            eventLocation,
-                            eventStartTime,
-                            eventEndTime,
-                            userId);
+                                                      eventDescription,
+                                                      eventLocation,
+                                                      eventStartTime,
+                                                      eventEndTime);
                     dismiss();
                 } else {
                     Toast.makeText(getActivity(), "Parent fragment is not set", Toast.LENGTH_SHORT).show();

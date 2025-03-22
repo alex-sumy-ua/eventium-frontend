@@ -101,7 +101,7 @@ public class AddRegistrationDialogFragment extends DialogFragment {
     }
 
     private void fetchEvents() {
-        EventRepository eventRepository = new EventRepository();
+        EventRepository eventRepository = new EventRepository(requireContext());
         eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
             @Override
             public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {

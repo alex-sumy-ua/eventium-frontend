@@ -24,6 +24,9 @@ public interface UserApiService {
     @GET("users/{id}")
     Call<User> getUserById(@Path("id") UUID id);
 
+    @GET("users/by-email/{email}")
+    Call<User> getUserByEmail(@Path("email") String email);
+
     @PUT("users/{id}")
     Call<User> updateUser(@Path("id") UUID id, @Body User user);
 

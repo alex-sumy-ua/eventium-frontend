@@ -76,7 +76,7 @@ public class RegistrationFragment extends Fragment {
 
         // Initialize repositories
         registrationRepository = new RegistrationRepository();
-        eventRepository = new EventRepository();
+        eventRepository = new EventRepository(requireContext());
         userRepository = new UserRepository();
 
         // Setup RecyclerView

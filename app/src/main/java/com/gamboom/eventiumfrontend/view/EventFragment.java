@@ -15,10 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Event;
-import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.EventRepository;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
+import com.gamboom.eventiumfrontend.service.AppSession;
 import com.gamboom.eventiumfrontend.service.EventAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -55,6 +55,16 @@ public class EventFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_event, container, false);
 
+        // Update access to AppSession with context
+        User currentUser = AppSession.getInstance().getCurrentUser();
+        String token = AppSession.getInstance().getAccessToken();
+        if (currentUser != null) {
+            currentUserId = currentUser.getUserId();
+            Log.d("EventFragment", "Current user ID: " + currentUserId);
+        } else {
+            Log.e("EventFragment", "No current user found in AppSession");
+        }
+
         FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
         fabAdd.setOnClickListener(v -> openAddEventDialog());
 
@@ -67,7 +77,7 @@ public class EventFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Initialize repositories
-        eventRepository = new EventRepository();
+        eventRepository = new EventRepository(requireContext());
         userRepository = new UserRepository();
 
         // Setup RecyclerView
@@ -83,15 +93,23 @@ public class EventFragment extends Fragment {
     }
 
     private void fetchEvents() {
+        String token = AppSession.getInstance().getAccessToken();
+        if (token == null || token.isEmpty()) {
+            Log.e("EventFragment", "Authorization token is missing");
+            showError("Authorization error: No access token found.");
+            return;
+        }
+
         eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
             @Override
             public void onResponse(@NonNull Call<List<Event>> call,
                                    @NonNull Response<List<Event>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     events = response.body();
+                    Log.d("EventFragment", "Events loaded successfully: " + events.size());
                     fetchUsers();
                 } else {
-                    showError("Failed to load events. Please try again.");
+                    showError("Failed to load events. Response code: " + response.code());
                 }
             }
 
@@ -99,6 +117,7 @@ public class EventFragment extends Fragment {
             public void onFailure(@NonNull Call<List<Event>> call,
                                   @NonNull Throwable t) {
                 showError("Network error: Unable to load events.");
+                Log.e("EventFragment", "Network error: Unable to load events.", t);
             }
         });
     }
@@ -110,17 +129,19 @@ public class EventFragment extends Fragment {
                                    @NonNull Response<List<User>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     users = response.body();
+                    Log.d("EventFragment", "Users loaded successfully: " + users.size());
                     eventAdapter.updateData(events, users);
                 } else {
-                    Log.e("EventFragment", "Failed to load users. Response code: " + response.code());
                     showError("Failed to load users.");
+                    Log.e("EventFragment", "Failed to load users. Response code: " + response.code());
                 }
             }
 
             @Override
-            public void onFailure(Call<List<User>> call, Throwable t) {
-                Log.e("EventFragment", "Network error: Unable to load users.", t);
+            public void onFailure(@NonNull Call<List<User>> call,
+                                  @NonNull Throwable t) {
                 showError("Network error: Unable to load users.");
+                Log.e("EventFragment", "Network error: Unable to load users.", t);
             }
         });
     }
@@ -143,8 +164,19 @@ public class EventFragment extends Fragment {
                                    String eventDescription,
                                    String eventLocation,
                                    LocalDateTime eventStartTime,
-                                   LocalDateTime eventEndTime,
-                                   UUID userId) {
+                                   LocalDateTime eventEndTime) {
+        if (currentUserId == null) {
+            showError("Error: No current user found.");
+            Log.e("EventFragment", "Attempted to create event with null currentUserId.");
+            return;
+        }
+
+        String token = AppSession.getInstance().getAccessToken();
+        if (token == null || token.isEmpty()) {
+            showError("Authorization error: No access token found.");
+            return;
+        }
+
         // Create a new Event object with the provided data
         Event newEvent = new Event();
         newEvent.setTitle(eventTitle);
@@ -152,26 +184,29 @@ public class EventFragment extends Fragment {
         newEvent.setLocation(eventLocation);
         newEvent.setStartTime(eventStartTime);
         newEvent.setEndTime(eventEndTime);
-        newEvent.setCreatedBy(userId);
+        newEvent.setCreatedBy(currentUserId);
         newEvent.setCreatedAt(LocalDateTime.now());
 
         // Call the API method in the EventRepository to create a new event
         eventRepository.createEvent(newEvent).enqueue(new Callback<Event>() {
             @Override
-            public void onResponse(Call<Event> call, Response<Event> response) {
+            public void onResponse(@NonNull Call<Event> call,
+                                   @NonNull Response<Event> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getContext(), "Event added successfully", Toast.LENGTH_SHORT).show();
+                    Log.d("EventFragment", "Event created successfully: " + response.body().getTitle());
                     fetchEvents(); // Refresh the event list
                 } else {
+                    showError("Failed to add event. Response code: " + response.code());
                     Log.e("EventFragment", "Failed to add event. Response code: " + response.code());
-                    Toast.makeText(getContext(), "Failed to add event", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<Event> call, Throwable t) {
+            public void onFailure(@NonNull Call<Event> call,
+                                  @NonNull Throwable t) {
+                showError("Error adding event.");
                 Log.e("EventFragment", "Error adding event", t);
-                Toast.makeText(getContext(), "Error adding event", Toast.LENGTH_SHORT).show();
             }
         });
     }
