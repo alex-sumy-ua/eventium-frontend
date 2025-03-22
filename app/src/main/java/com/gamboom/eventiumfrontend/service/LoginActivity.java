@@ -1,5 +1,6 @@
 package com.gamboom.eventiumfrontend.service;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,9 +26,8 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private Button githubLoginButton;
     private TextView messageTextView;
-    private String accessToken;  // Store the token temporarily
+    private String authToken;  // Store the token temporarily
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // Initialize views
-        githubLoginButton = findViewById(R.id.githubLoginButton);
+        Button githubLoginButton = findViewById(R.id.githubLoginButton);
         messageTextView = findViewById(R.id.messageTextView);
 
         // Handle GitHub login button click
@@ -60,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
         handleOAuthCallback(intent);
     }
 
+    @SuppressLint("SetTextI18n")
     private void handleOAuthCallback(Intent intent) {
         Uri uri = intent.getData();
         if (uri != null) {
@@ -67,12 +69,18 @@ public class LoginActivity extends AppCompatActivity {
 
             if ("eventium".equals(uri.getScheme()) && "auth".equals(uri.getHost())) {
                 String email = uri.getQueryParameter("email");
-                accessToken = uri.getQueryParameter("token");
-                accessToken = accessToken.trim();
+                authToken = uri.getQueryParameter("token");
 
-                if (email != null && accessToken != null && !accessToken.equals("null")) {
+                if (email != null && authToken != null && !authToken.equals("null")) {
+                    authToken = authToken.trim();
+
+                    // Save token immediately
+                    AppSession.getInstance().setAccessToken("Bearer " + authToken);
+
                     Log.d("LoginActivity", "Email received: " + email);
-                    Log.d("LoginActivity", "Token received: " + accessToken);
+                    Log.d("LoginActivity", "Token received: " + authToken);
+
+                    Log.d("LoginActivity", "Saved token: " + AppSession.getInstance().getAccessToken());
 
                     // Fetch user and proceed
                     fetchUserByEmail(email);
@@ -91,18 +99,14 @@ public class LoginActivity extends AppCompatActivity {
 
     private void fetchUserByEmail(String email) {
         UserApiService apiService = RetrofitClient.getRetrofitInstance().create(UserApiService.class);
-        apiService.getUserByEmail(email).enqueue(new Callback<User>() {
+        apiService.getUserByEmail(authToken, email).enqueue(new Callback<User>() {
             @Override
-            public void onResponse(Call<User> call, Response<User> response) {
+            public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                 if (response.isSuccessful()) {
                     User currentUser = response.body();
                     if (currentUser != null) {
-                        String token = accessToken; // Use the token from the deep link
-
-                        // Save user and token to session
-                        AppSession session = AppSession.getInstance();
-                        session.setCurrentUser(currentUser);
-                        session.setAccessToken(token);
+                        // Save user to session
+                        AppSession.getInstance().setCurrentUser(currentUser);
 
                         // Navigate to MainActivity
                         Intent mainIntent = new Intent(LoginActivity.this, MainActivity.class);
@@ -117,11 +121,9 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<User> call, Throwable t) {
+            public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
                 Toast.makeText(LoginActivity.this, "Network error", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-
 }

@@ -22,8 +22,11 @@ import java.util.UUID;
 import android.util.Log;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
+
     private final List<Event> eventList;
     private final Map<UUID, String> userNames;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public EventAdapter(List<Event> eventList, List<User> userList) {
         this.eventList = eventList != null ? eventList : new ArrayList<>(); // Prevent NullPointerException
@@ -54,15 +57,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.location.setText(event.getLocation());
 
         // Format createdAt with DateTimeFormatter and handle null value
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         holder.startTime.setText(event.getStartTime() != null
-                ? event.getStartTime().format(formatter)
+                ? event.getStartTime().format(FORMATTER)
                 : "N/A");
         holder.endTime.setText(event.getEndTime() != null
-                ? event.getEndTime().format(formatter)
+                ? event.getEndTime().format(FORMATTER)
                 : "N/A");
         holder.createdAt.setText(event.getCreatedAt() != null
-                ? event.getCreatedAt().format(formatter)
+                ? event.getCreatedAt().format(FORMATTER)
                 : "N/A");
 
         // Log the createdBy UUID value

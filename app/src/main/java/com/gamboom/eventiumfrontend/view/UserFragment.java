@@ -17,6 +17,7 @@ import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
+import com.gamboom.eventiumfrontend.service.AppSession;
 import com.gamboom.eventiumfrontend.service.UserAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -35,7 +36,7 @@ public class UserFragment extends Fragment {
     private UserAdapter userAdapter;
     private UserRepository userRepository;
 
-    private UUID currentUserId;
+    private User currentUser;
 
     @Nullable
     @Override
@@ -43,7 +44,13 @@ public class UserFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        // Inflate the fragment's layout
+        currentUser = AppSession.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            Log.d("EventFragment", "Current user ID: " + currentUser.getUserId());
+        } else {
+            Log.e("EventFragment", "No current user found in AppSession");
+        }
+
         View view = inflater.inflate(R.layout.fragment_user, container, false);
 
         // Initialize RecyclerView and adapter
@@ -56,6 +63,12 @@ public class UserFragment extends Fragment {
             Toast.makeText(getContext(), "Clicked: " + user.getName(), Toast.LENGTH_SHORT).show();
         });
         recyclerView.setAdapter(userAdapter);
+
+        String authToken = AppSession.getInstance().getAccessToken();
+        if (authToken == null || authToken.equals("null")) {
+            Toast.makeText(getContext(), "No access token. Please log in.", Toast.LENGTH_SHORT).show();
+            return view;
+        }
 
         // Initialize repository and fetch users
         userRepository = new UserRepository();
@@ -93,19 +106,16 @@ public class UserFragment extends Fragment {
 
     private void openAddUserDialog() {
         AddUserDialogFragment dialog = new AddUserDialogFragment();
-
-        // Set the current user's role (replace this with your logic to get the current user's role)
-        Role currentUserRole = getCurrentUserRole(); // Example: Replace with actual logic
+        // Set the current user's role
+        Role currentUserRole = getCurrentUserRole();
         dialog.setCurrentUserRole(currentUserRole);
-
         // Set the parent fragment
         dialog.setParentFragment(this);
-
         dialog.show(getParentFragmentManager(), "AddUserDialog");
     }
 
     private Role getCurrentUserRole() {
-        return Role.ADMIN;
+        return currentUser != null ? currentUser.getRole() : Role.MEMBER;
     }
 
     public void addUserToDatabase(String name,

@@ -24,9 +24,6 @@ public class User {
     @SerializedName("createdAt")
     private LocalDateTime createdAt;
 
-    @SerializedName("token") // ✅ Added token field
-    private String token;
-
     public User() {
     }
 
@@ -35,15 +32,13 @@ public class User {
                 String email,
                 String password,
                 Role role,
-                LocalDateTime createdAt,
-                String token) { // ✅ Updated constructor
+                LocalDateTime createdAt) {
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
         this.createdAt = createdAt;
-        this.token = token;
     }
 
     public UUID getUserId() {
@@ -94,11 +89,4 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public String getToken() { // ✅ Getter for token
-        return token;
-    }
-
-    public void setToken(String token) { // ✅ Setter for token
-        this.token = token;
-    }
 }

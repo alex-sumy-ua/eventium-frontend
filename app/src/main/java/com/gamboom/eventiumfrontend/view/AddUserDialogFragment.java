@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AddUserDialogFragment extends DialogFragment {
+
     private EditText etUserName, etEmail;
     private Spinner spinnerRole;
     private Button btnSave, btnCancel;

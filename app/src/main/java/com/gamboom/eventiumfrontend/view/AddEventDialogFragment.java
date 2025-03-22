@@ -14,10 +14,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.gamboom.eventiumfrontend.R;
-import com.gamboom.eventiumfrontend.model.User;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class AddEventDialogFragment extends DialogFragment {
     private EditText etEventTitle, etEventDescription, etEventLocation;
@@ -25,7 +23,6 @@ public class AddEventDialogFragment extends DialogFragment {
     private TimePicker timePickerStart, timePickerEnd;
     private Button btnSave, btnCancel;
 
-    private User currentUser;  // Add reference for currentUser
     private EventFragment parentFragment; // Add reference to the parent fragment
 
     // Add a method to set the parent fragment
@@ -76,8 +73,10 @@ public class AddEventDialogFragment extends DialogFragment {
             // Convert to LocalDateTime
             LocalDateTime eventStartTime = LocalDateTime.of(startYear, startMonth, startDay, startHour, startMinute);
             LocalDateTime eventEndTime = LocalDateTime.of(endYear, endMonth, endDay, endHour, endMinute);
-
-            UUID userId = currentUser.getUserId(); // Ensure currentUser is initialised
+            if (eventEndTime.isBefore(eventStartTime)) {
+                Toast.makeText(getActivity(), "End time must be after start time", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // Validate input and save event
             if (!eventTitle.isEmpty() && !eventLocation.isEmpty() && eventStartTime != null) {
@@ -99,8 +98,4 @@ public class AddEventDialogFragment extends DialogFragment {
         return view;
     }
 
-    // Add method to set currentUser
-    public void setCurrentUser(User currentUser) {
-        this.currentUser = currentUser;
-    }
 }

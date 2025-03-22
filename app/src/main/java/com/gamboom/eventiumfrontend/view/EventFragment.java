@@ -25,7 +25,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -41,7 +40,7 @@ public class EventFragment extends Fragment {
     private List<Event> events;
     private List<User> users;
 
-    private UUID currentUserId;
+    private User currentUser;
 
     public EventFragment() {
         // Required empty public constructor
@@ -53,17 +52,14 @@ public class EventFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_event, container, false);
-
-        // Update access to AppSession with context
-        User currentUser = AppSession.getInstance().getCurrentUser();
-        String token = AppSession.getInstance().getAccessToken();
+        currentUser = AppSession.getInstance().getCurrentUser();
         if (currentUser != null) {
-            currentUserId = currentUser.getUserId();
-            Log.d("EventFragment", "Current user ID: " + currentUserId);
+            Log.d("EventFragment", "Current user ID: " + currentUser.getUserId());
         } else {
             Log.e("EventFragment", "No current user found in AppSession");
         }
+
+        View view = inflater.inflate(R.layout.fragment_event, container, false);
 
         FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
         fabAdd.setOnClickListener(v -> openAddEventDialog());
@@ -77,7 +73,7 @@ public class EventFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Initialize repositories
-        eventRepository = new EventRepository(requireContext());
+        eventRepository = new EventRepository();
         userRepository = new UserRepository();
 
         // Setup RecyclerView
@@ -93,12 +89,6 @@ public class EventFragment extends Fragment {
     }
 
     private void fetchEvents() {
-        String token = AppSession.getInstance().getAccessToken();
-        if (token == null || token.isEmpty()) {
-            Log.e("EventFragment", "Authorization token is missing");
-            showError("Authorization error: No access token found.");
-            return;
-        }
 
         eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
             @Override
@@ -123,6 +113,7 @@ public class EventFragment extends Fragment {
     }
 
     private void fetchUsers() {
+
         userRepository.getAllUsers().enqueue(new Callback<List<User>>() {
             @Override
             public void onResponse(@NonNull Call<List<User>> call,
@@ -154,9 +145,6 @@ public class EventFragment extends Fragment {
     private void openAddEventDialog() {
         AddEventDialogFragment dialog = new AddEventDialogFragment();
         dialog.setParentFragment(this); // Pass the parent fragment
-        if (users != null && !users.isEmpty()) {
-            dialog.setCurrentUser(users.get(0)); // Example: Use the first user as the current user
-        }
         dialog.show(getParentFragmentManager(), "AddEventDialog");
     }
 
@@ -165,15 +153,9 @@ public class EventFragment extends Fragment {
                                    String eventLocation,
                                    LocalDateTime eventStartTime,
                                    LocalDateTime eventEndTime) {
-        if (currentUserId == null) {
+        if (currentUser == null) {
             showError("Error: No current user found.");
             Log.e("EventFragment", "Attempted to create event with null currentUserId.");
-            return;
-        }
-
-        String token = AppSession.getInstance().getAccessToken();
-        if (token == null || token.isEmpty()) {
-            showError("Authorization error: No access token found.");
             return;
         }
 
@@ -184,7 +166,7 @@ public class EventFragment extends Fragment {
         newEvent.setLocation(eventLocation);
         newEvent.setStartTime(eventStartTime);
         newEvent.setEndTime(eventEndTime);
-        newEvent.setCreatedBy(currentUserId);
+        newEvent.setCreatedBy(currentUser.getUserId());
         newEvent.setCreatedAt(LocalDateTime.now());
 
         // Call the API method in the EventRepository to create a new event

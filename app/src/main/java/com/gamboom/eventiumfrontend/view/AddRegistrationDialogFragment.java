@@ -19,6 +19,7 @@ import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Event;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.EventRepository;
+import com.gamboom.eventiumfrontend.service.AppSession;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -101,7 +102,9 @@ public class AddRegistrationDialogFragment extends DialogFragment {
     }
 
     private void fetchEvents() {
-        EventRepository eventRepository = new EventRepository(requireContext());
+        EventRepository eventRepository = new EventRepository();
+        String token = AppSession.getInstance().getAccessToken();
+
         eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
             @Override
             public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {

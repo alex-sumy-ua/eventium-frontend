@@ -1,6 +1,7 @@
 package com.gamboom.eventiumfrontend.service;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,37 +15,47 @@ import com.gamboom.eventiumfrontend.model.Event;
 import com.gamboom.eventiumfrontend.model.Registration;
 import com.gamboom.eventiumfrontend.model.User;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import android.util.Log;
+import java.util.*;
 
 public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapter.RegistrationViewHolder> {
+
     private final List<Registration> registrationList;
     private final Map<UUID, String> eventTitles;
     private final Map<UUID, String> userNames;
 
+    private OnRegistrationClickListener listener;
+
+    // Optional click listener interface
+    public interface OnRegistrationClickListener {
+        void onRegistrationClick(Registration registration);
+    }
+
+    // Constructor with click listener
+    public RegistrationAdapter(List<Registration> registrationList,
+                               List<Event> eventList,
+                               List<User> userList,
+                               OnRegistrationClickListener listener) {
+        this(registrationList, eventList, userList);
+        this.listener = listener;
+    }
+
+    // Constructor without click listener
     public RegistrationAdapter(List<Registration> registrationList,
                                List<Event> eventList,
                                List<User> userList) {
-        this.registrationList = registrationList != null
-                ? registrationList
-                : new ArrayList<>(); // Prevent NullPointerException
+        this.registrationList = registrationList != null ? registrationList : new ArrayList<>();
         this.eventTitles = new HashMap<>();
         this.userNames = new HashMap<>();
+        this.listener = null;
 
-        // Populate eventTitles map with event IDs and their corresponding titles
         if (eventList != null) {
             for (Event event : eventList) {
                 eventTitles.put(event.getEventId(), event.getTitle());
             }
         }
 
-        // Populate userNames map with user IDs and their corresponding names
         if (userList != null) {
             for (User user : userList) {
                 userNames.put(user.getUserId(), user.getName());
@@ -64,37 +75,31 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     public void onBindViewHolder(@NonNull RegistrationViewHolder holder, int position) {
         Registration registration = registrationList.get(position);
 
-        // Retrieve user name and event title from maps with null checks
-        String userName = "Unknown User";
-        if (registration.getUserId() != null) {
-            userName = userNames.getOrDefault(registration.getUserId(), "Unknown User");
-        }
+        String userName = userNames.getOrDefault(registration.getUserId(), "Unknown User");
+        String eventTitle = eventTitles.getOrDefault(registration.getEventId(), "Unknown Event");
+        String formattedDate = formatDateTime(registration.getRegistrationTime());
 
-        String eventTitle = "Unknown Event";
-        if (registration.getEventId() != null) {
-            eventTitle = eventTitles.getOrDefault(registration.getEventId(), "Unknown Event");
-        }
-
-        // Format registration date with null check
-        String formattedDate = "N/A";
-        if (registration.getRegistrationTime() != null) {
-            formattedDate = registration.getRegistrationTime()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        }
-
-        // Set text values
         holder.eventTitleTextView.setText(eventTitle);
         holder.userNameTextView.setText(userName);
         holder.registrationTimeTextView.setText(formattedDate);
 
-        // Log the final values being set
-        Log.d("RegistrationAdapter", "User Name: " + userName);
-        Log.d("RegistrationAdapter", "Event Title: " + eventTitle);
-        Log.d("RegistrationAdapter", "Registration Time: " + formattedDate);
+        Log.d("RegistrationAdapter", "User: " + userName + ", Event: " + eventTitle + ", Time: " + formattedDate);
+
+        if (listener != null) {
+            holder.itemView.setOnClickListener(v -> listener.onRegistrationClick(registration));
+        }
     }
+
     @Override
     public int getItemCount() {
         return registrationList.size();
+    }
+
+    // Reusable date formatter
+    private String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) return "N/A";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return dateTime.format(formatter);
     }
 
     public static class RegistrationViewHolder extends RecyclerView.ViewHolder {
@@ -115,15 +120,11 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
                            List<Event> newEvents,
                            List<User> newUsers) {
 
-        Log.d("RegistrationAdapter", "New Registrations: " + newRegistrations.size());
-        Log.d("RegistrationAdapter", "New Events: " + (newEvents != null ? newEvents.size() : 0));
-        Log.d("RegistrationAdapter", "New Users: " + (newUsers != null ? newUsers.size() : 0));
+        Log.d("RegistrationAdapter", "Updating data...");
 
-        // Update the registrations list
         registrationList.clear();
-        registrationList.addAll(newRegistrations);
+        registrationList.addAll(newRegistrations != null ? newRegistrations : new ArrayList<>());
 
-        // Update the eventTitles map
         eventTitles.clear();
         if (newEvents != null) {
             for (Event event : newEvents) {
@@ -131,7 +132,6 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             }
         }
 
-        // Update the userNames map
         userNames.clear();
         if (newUsers != null) {
             for (User user : newUsers) {
@@ -139,7 +139,6 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             }
         }
 
-        // Notify the adapter of changes
         notifyDataSetChanged();
     }
 

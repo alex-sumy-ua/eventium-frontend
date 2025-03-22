@@ -16,18 +16,18 @@ import retrofit2.http.Path;
 public interface EventApiService {
 
     @POST("events")
-    Call<Event> createEvent(@Body Event event);
+    Call<Event> createEvent(@Header("Authorization") String authToken, @Body Event event);
 
     @GET("events")
     Call<List<Event>> getAllEvents(@Header("Authorization") String authToken);
 
     @GET("events/{id}")
-    Call<Event> getEventById(@Path("id") UUID id);
+    Call<Event> getEventById(@Header("Authorization") String authToken, @Path("id") UUID id);
 
     @PUT("events/{id}")
-    Call<Event> updateEvent(@Path("id") UUID id, @Body Event event);
+    Call<Event> updateEvent(@Header("Authorization") String authToken, @Path("id") UUID id, @Body Event event);
 
     @DELETE("events/{id}")
-    Call<Void> deleteEvent(@Path("id") UUID id);
+    Call<Void> deleteEvent(@Header("Authorization") String authToken, @Path("id") UUID id);
 
 }
