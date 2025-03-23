@@ -3,6 +3,7 @@ package com.gamboom.eventiumfrontend.service;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,21 +19,16 @@ import java.util.List;
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
     private List<User> users;
-    private OnUserClickListener listener;
+    private final OnUserActionListener listener;
 
-    public interface OnUserClickListener {
-        void onUserClick(User user);
+    public interface OnUserActionListener {
+        void onEditUser(User user);
+        void onDeleteUser(User user);
     }
 
-    // Constructor with listener
-    public UserAdapter(List<User> users, OnUserClickListener listener) {
+    public UserAdapter(List<User> users, OnUserActionListener listener) {
         this.users = users != null ? users : new ArrayList<>();
         this.listener = listener;
-    }
-
-    // Constructor without listener (for backward compatibility)
-    public UserAdapter(List<User> users) {
-        this(users, null);
     }
 
     @NonNull
@@ -52,10 +48,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         holder.userCreatedAt.setText(user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "N/A");
 
-        // Set click listener if listener is not null
-        if (listener != null) {
-            holder.itemView.setOnClickListener(v -> listener.onUserClick(user));
-        }
+        holder.btnEdit.setOnClickListener(v -> {
+            if (listener != null) listener.onEditUser(user);
+        });
+
+        holder.btnDelete.setOnClickListener(v -> {
+            if (listener != null) listener.onDeleteUser(user);
+        });
     }
 
     @Override
@@ -63,17 +62,17 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         return users != null ? users.size() : 0;
     }
 
-    // Method to update the user data
     public void updateData(List<User> newUsers) {
         if (newUsers != null) {
             this.users.clear();
             this.users.addAll(newUsers);
-            notifyDataSetChanged(); // Notify the adapter that the data has changed
+            notifyDataSetChanged();
         }
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView userName, userEmail, userRole, userCreatedAt;
+        ImageButton btnEdit, btnDelete;
 
         public UserViewHolder(View itemView) {
             super(itemView);
@@ -81,7 +80,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             userEmail = itemView.findViewById(R.id.userEmail);
             userRole = itemView.findViewById(R.id.userRole);
             userCreatedAt = itemView.findViewById(R.id.userCreatedAt);
+            btnEdit = itemView.findViewById(R.id.btnEdit);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
-
 }

@@ -30,12 +30,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class UserFragment extends Fragment {
+public class UserFragment extends Fragment implements UserAdapter.OnUserActionListener {
 
     private RecyclerView recyclerView;
     private UserAdapter userAdapter;
     private UserRepository userRepository;
-
     private User currentUser;
 
     @Nullable
@@ -55,15 +54,9 @@ public class UserFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_user, container, false);
 
-        // Initialise RecyclerView and adapter
         recyclerView = view.findViewById(R.id.userRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // Initialise adapter with an empty list
-        userAdapter = new UserAdapter(new ArrayList<>(), user -> {
-            // Handle user click (e.g., open user details or edit dialog)
-            Toast.makeText(getContext(), "Clicked: " + user.getName(), Toast.LENGTH_SHORT).show();
-        });
+        userAdapter = new UserAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(userAdapter);
 
         String authToken = AppSession.getInstance().getAccessToken();
@@ -72,7 +65,6 @@ public class UserFragment extends Fragment {
             return view;
         }
 
-        // Initialise repository and fetch users
         userRepository = new UserRepository();
         fetchUsers();
 
@@ -87,11 +79,7 @@ public class UserFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<List<User>> call, @NonNull Response<List<User>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    if (!response.body().isEmpty()) {
-                        userAdapter.updateData(response.body()); // Update the adapter with new data
-                    } else {
-                        Toast.makeText(getContext(), "No users found", Toast.LENGTH_SHORT).show();
-                    }
+                    userAdapter.updateData(response.body());
                 } else {
                     Log.e("UserFragment", "Failed to load users. Response code: " + response.code());
                     Toast.makeText(getContext(), "Failed to load users", Toast.LENGTH_SHORT).show();
@@ -99,8 +87,7 @@ public class UserFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<User>> call,
-                                  @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<User>> call, @NonNull Throwable t) {
                 showError("API: Unable to load users.");
                 Log.e("UserFragment", "Network error: Unable to load users.", t);
             }
@@ -112,13 +99,9 @@ public class UserFragment extends Fragment {
         Log.e("UserFragment", message);
     }
 
-
     private void openAddUserDialog() {
         AddUserDialogFragment dialog = new AddUserDialogFragment();
-        // Set the current user's role
-        Role currentUserRole = getCurrentUserRole();
-        dialog.setCurrentUserRole(currentUserRole);
-        // Set the parent fragment
+        dialog.setCurrentUserRole(getCurrentUserRole());
         dialog.setParentFragment(this);
         dialog.show(getParentFragmentManager(), "AddUserDialog");
     }
@@ -127,24 +110,20 @@ public class UserFragment extends Fragment {
         return currentUser != null ? currentUser.getRole() : Role.MEMBER;
     }
 
-    public void addUserToDatabase(String name,
-                                  String email,
-                                  String role) {
-        // Create a new User object with the provided data
+    public void addUserToDatabase(String name, String email, String role) {
         User newUser = new User();
         newUser.setName(name);
         newUser.setEmail(email);
-        newUser.setRole(Role.valueOf(role)); // Ensure role is valid
-        newUser.setPassword("GITHUB_OAUTHENTICATION"); // Replace with actual password logic
+        newUser.setRole(Role.valueOf(role));
+        newUser.setPassword("GITHUB_OAUTHENTICATION");
         newUser.setCreatedAt(LocalDateTime.now());
 
-        // Call the API to create the user
         userRepository.createUser(newUser).enqueue(new Callback<User>() {
             @Override
             public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getContext(), "User added successfully", Toast.LENGTH_SHORT).show();
-                    fetchUsers(); // Refresh the user list
+                    fetchUsers();
                 } else {
                     Toast.makeText(getContext(), "Failed to add user", Toast.LENGTH_SHORT).show();
                 }
@@ -157,4 +136,60 @@ public class UserFragment extends Fragment {
         });
     }
 
+    @Override
+    public void onEditUser(User user) {
+        if (currentUser.getRole() == Role.STAFF || currentUser.getRole() == Role.ADMIN) {
+            AddUserDialogFragment dialog = new AddUserDialogFragment();
+            dialog.setCurrentUserRole(currentUser.getRole());
+            dialog.setParentFragment(this);
+            dialog.setUserToEdit(user);
+            dialog.show(getParentFragmentManager(), "EditUserDialog");
+        } else {
+            Toast.makeText(getContext(), "Only STAFF or ADMIN can edit users", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onDeleteUser(User user) {
+        if (currentUser.getRole() == Role.STAFF ||
+                (currentUser.getRole() == Role.ADMIN && user.getRole() != Role.ADMIN)) {
+            userRepository.deleteUser(user.getUserId()).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), "User deleted", Toast.LENGTH_SHORT).show();
+                        fetchUsers();
+                    } else {
+                        Toast.makeText(getContext(), "Failed to delete user", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                    Toast.makeText(getContext(), "Error deleting user", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(getContext(), "You do not have permission to delete this user", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void updateUserInDatabase(UUID userId, User updatedUser) {
+        userRepository.updateUser(userId, updatedUser).enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "User updated successfully", Toast.LENGTH_SHORT).show();
+                    fetchUsers();
+                } else {
+                    Toast.makeText(getContext(), "Failed to update user", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
+                Toast.makeText(getContext(), "Error updating user", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
