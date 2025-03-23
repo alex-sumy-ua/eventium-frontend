@@ -1,6 +1,8 @@
 package com.gamboom.eventiumfrontend.repository;
 
 import android.content.Context;
+import android.util.Log;
+
 import com.gamboom.eventiumfrontend.model.Event;
 import com.gamboom.eventiumfrontend.network.EventApiService;
 import com.gamboom.eventiumfrontend.network.RetrofitClient;
@@ -23,6 +25,7 @@ public class EventRepository {
     }
 
     public Call<List<Event>> getAllEvents() {
+        Log.d("EventRepository", "Using token: " + authToken);
         return eventApiService.getAllEvents("Bearer " + authToken);
     }
 

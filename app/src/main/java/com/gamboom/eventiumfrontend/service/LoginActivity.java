@@ -75,7 +75,7 @@ public class LoginActivity extends AppCompatActivity {
                     authToken = authToken.trim();
 
                     // Save token immediately
-                    AppSession.getInstance().setAccessToken("Bearer " + authToken);
+                    AppSession.getInstance().setAccessToken(authToken);
 
                     Log.d("LoginActivity", "Email received: " + email);
                     Log.d("LoginActivity", "Token received: " + authToken);

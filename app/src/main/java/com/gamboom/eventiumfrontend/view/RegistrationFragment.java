@@ -132,12 +132,16 @@ public class RegistrationFragment extends Fragment {
                     fetchUsersByIds(new ArrayList<>(uniqueUserIds));
                 } else {
                     showError("Failed to load registrations. Response code: " + response.code());
+                    Log.e("RegistrationFragment", "Network error: Unable to load registrations.");
+
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<Registration>> call, @NonNull Throwable t) {
-                showError("Network error: Unable to load registrations. Error: " + t.getMessage());
+            public void onFailure(@NonNull Call<List<Registration>> call,
+                                  @NonNull Throwable t) {
+                showError("API: Unable to load registrations.");
+                Log.e("RegistrationFragment", "Network error: Unable to load registrations.", t);
             }
         });
     }

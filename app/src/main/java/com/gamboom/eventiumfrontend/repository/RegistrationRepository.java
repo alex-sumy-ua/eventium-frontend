@@ -21,22 +21,22 @@ public class RegistrationRepository {
     }
 
     public Call<List<Registration>> getAllRegistrations() {
-        return registrationApiService.getAllRegistrations(authToken);
+        return registrationApiService.getAllRegistrations("Bearer " + authToken);
     }
 
     public Call<Registration> getRegistrationById(UUID id) {
-        return registrationApiService.getRegistrationById(authToken, id);
+        return registrationApiService.getRegistrationById("Bearer " + authToken, id);
     }
 
     public Call<Registration> createRegistration(Registration registration) {
-        return registrationApiService.createRegistration(authToken, registration);
+        return registrationApiService.createRegistration("Bearer " + authToken, registration);
     }
 
     public Call<Registration> updateRegistration(UUID id, Registration registration) {
-        return registrationApiService.updateRegistration(authToken, id, registration);
+        return registrationApiService.updateRegistration("Bearer " + authToken, id, registration);
     }
 
     public Call<Void> deleteRegistration(UUID id) {
-        return registrationApiService.deleteRegistration(authToken, id);
+        return registrationApiService.deleteRegistration("Bearer " + authToken, id);
     }
 }

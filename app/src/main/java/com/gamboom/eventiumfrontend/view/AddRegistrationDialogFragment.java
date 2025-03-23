@@ -12,6 +12,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
@@ -107,7 +108,7 @@ public class AddRegistrationDialogFragment extends DialogFragment {
 
         eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
             @Override
-            public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
+            public void onResponse(@NonNull Call<List<Event>> call, @NonNull Response<List<Event>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     // Filter events to show only future events
                     events = new ArrayList<>();
@@ -130,7 +131,7 @@ public class AddRegistrationDialogFragment extends DialogFragment {
             }
 
             @Override
-            public void onFailure(Call<List<Event>> call, Throwable t) {
+            public void onFailure(@NonNull Call<List<Event>> call, @NonNull Throwable t) {
                 Toast.makeText(getActivity(), "Error loading events", Toast.LENGTH_SHORT).show();
             }
         });

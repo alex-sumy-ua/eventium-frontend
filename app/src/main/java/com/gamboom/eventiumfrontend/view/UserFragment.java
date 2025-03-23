@@ -46,18 +46,20 @@ public class UserFragment extends Fragment {
 
         currentUser = AppSession.getInstance().getCurrentUser();
         if (currentUser != null) {
-            Log.d("EventFragment", "Current user ID: " + currentUser.getUserId());
+            Log.d("UserFragment", "Current user ID: " + currentUser.getUserId());
+            Log.d("UserFragment", "Current user Role: " + currentUser.getRole());
+            Log.d("UserFragment", "Current user Name: " + currentUser.getName());
         } else {
-            Log.e("EventFragment", "No current user found in AppSession");
+            Log.e("UserFragment", "No current user found in AppSession");
         }
 
         View view = inflater.inflate(R.layout.fragment_user, container, false);
 
-        // Initialize RecyclerView and adapter
+        // Initialise RecyclerView and adapter
         recyclerView = view.findViewById(R.id.userRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Initialize adapter with an empty list
+        // Initialise adapter with an empty list
         userAdapter = new UserAdapter(new ArrayList<>(), user -> {
             // Handle user click (e.g., open user details or edit dialog)
             Toast.makeText(getContext(), "Clicked: " + user.getName(), Toast.LENGTH_SHORT).show();
@@ -70,7 +72,7 @@ public class UserFragment extends Fragment {
             return view;
         }
 
-        // Initialize repository and fetch users
+        // Initialise repository and fetch users
         userRepository = new UserRepository();
         fetchUsers();
 
@@ -83,7 +85,7 @@ public class UserFragment extends Fragment {
     private void fetchUsers() {
         userRepository.getAllUsers().enqueue(new Callback<List<User>>() {
             @Override
-            public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+            public void onResponse(@NonNull Call<List<User>> call, @NonNull Response<List<User>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     if (!response.body().isEmpty()) {
                         userAdapter.updateData(response.body()); // Update the adapter with new data
@@ -97,12 +99,19 @@ public class UserFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<List<User>> call, Throwable t) {
-                Log.e("UserFragment", "API call failed", t);
-                Toast.makeText(getContext(), "Error loading users", Toast.LENGTH_SHORT).show();
+            public void onFailure(@NonNull Call<List<User>> call,
+                                  @NonNull Throwable t) {
+                showError("API: Unable to load users.");
+                Log.e("UserFragment", "Network error: Unable to load users.", t);
             }
         });
     }
+
+    private void showError(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        Log.e("UserFragment", message);
+    }
+
 
     private void openAddUserDialog() {
         AddUserDialogFragment dialog = new AddUserDialogFragment();
@@ -132,7 +141,7 @@ public class UserFragment extends Fragment {
         // Call the API to create the user
         userRepository.createUser(newUser).enqueue(new Callback<User>() {
             @Override
-            public void onResponse(Call<User> call, Response<User> response) {
+            public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getContext(), "User added successfully", Toast.LENGTH_SHORT).show();
                     fetchUsers(); // Refresh the user list
@@ -142,7 +151,7 @@ public class UserFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<User> call, Throwable t) {
+            public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
                 Toast.makeText(getContext(), "Error adding user", Toast.LENGTH_SHORT).show();
             }
         });

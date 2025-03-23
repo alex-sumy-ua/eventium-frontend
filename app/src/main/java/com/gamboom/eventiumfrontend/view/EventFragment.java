@@ -89,25 +89,34 @@ public class EventFragment extends Fragment {
     }
 
     private void fetchEvents() {
-
         eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
             @Override
             public void onResponse(@NonNull Call<List<Event>> call,
                                    @NonNull Response<List<Event>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     events = response.body();
-                    Log.d("EventFragment", "Events loaded successfully: " + events.size());
+                    Log.d("EventFragment", "Events loaded: " + events.size());
                     fetchUsers();
                 } else {
-                    showError("Failed to load events. Response code: " + response.code());
+                    Log.e("EventFragment", "Failed to load events. HTTP " + response.code());
+
+                    if (response.errorBody() != null) {
+                        try {
+                            String error = response.errorBody().string();
+                            Log.e("EventFragment", "Raw error body: " + error);
+                        } catch (Exception e) {
+                            Log.e("EventFragment", "Error parsing errorBody", e);
+                        }
+                    }
+
+                    showError("Failed to load events. Try again.");
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<Event>> call,
-                                  @NonNull Throwable t) {
-                showError("Network error: Unable to load events.");
-                Log.e("EventFragment", "Network error: Unable to load events.", t);
+            public void onFailure(@NonNull Call<List<Event>> call, @NonNull Throwable t) {
+                showError("API: Unable to load events.");
+                Log.e("EventFragment", "❌ Exception while loading events", t);
             }
         });
     }
@@ -123,6 +132,16 @@ public class EventFragment extends Fragment {
                     Log.d("EventFragment", "Users loaded successfully: " + users.size());
                     eventAdapter.updateData(events, users);
                 } else {
+
+                    if (response.errorBody() != null) {
+                        try {
+                            String error = response.errorBody().string();
+                            Log.e("EventFragment", "Raw error response: " + error);
+                        } catch (Exception e) {
+                            Log.e("EventFragment", "Error reading errorBody", e);
+                        }
+                    }
+
                     showError("Failed to load users.");
                     Log.e("EventFragment", "Failed to load users. Response code: " + response.code());
                 }
@@ -131,7 +150,7 @@ public class EventFragment extends Fragment {
             @Override
             public void onFailure(@NonNull Call<List<User>> call,
                                   @NonNull Throwable t) {
-                showError("Network error: Unable to load users.");
+                showError("API: Unable to load users.");
                 Log.e("EventFragment", "Network error: Unable to load users.", t);
             }
         });
