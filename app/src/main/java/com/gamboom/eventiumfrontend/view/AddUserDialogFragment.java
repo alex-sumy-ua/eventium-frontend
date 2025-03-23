@@ -51,53 +51,61 @@ public void onStart() {
     }
 }    
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             Bundle savedInstanceState) {
+@Nullable
+@Override
+public View onCreateView(LayoutInflater inflater,
+                         @Nullable ViewGroup container,
+                         Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.dialog_add_update_user, container, false);
+    View view = inflater.inflate(R.layout.dialog_add_update_user, container, false);
 
-        etUserName = view.findViewById(R.id.et_username);
-        etEmail = view.findViewById(R.id.et_email);
-        spinnerRole = view.findViewById(R.id.spinner_role);
-        btnSave = view.findViewById(R.id.btn_save);
-        btnCancel = view.findViewById(R.id.btn_cancel);
+    etUserName = view.findViewById(R.id.et_username);
+    etEmail = view.findViewById(R.id.et_email);
+    spinnerRole = view.findViewById(R.id.spinner_role);
+    btnSave = view.findViewById(R.id.btn_save);
+    btnCancel = view.findViewById(R.id.btn_cancel);
 
-        // Populate the Spinner with roles based on the current user's role
-        if (currentUserRole != null) {
-            List<String> allowedRoles = getAllowedRoles(currentUserRole);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                    android.R.layout.simple_spinner_dropdown_item, allowedRoles);
-            spinnerRole.setAdapter(adapter);
-        } else {
-            Toast.makeText(getActivity(), "Current user role is not set", Toast.LENGTH_SHORT).show();
-            dismiss(); // Close the dialog if the role is not set
+    if (currentUserRole != null) {
+        List<String> allowedRoles = getAllowedRoles(currentUserRole);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_dropdown_item, allowedRoles);
+        spinnerRole.setAdapter(adapter);
+
+        if (currentUserRole == Role.MEMBER) {
+            // Disable form elements except Cancel
+            etUserName.setEnabled(false);
+            etEmail.setEnabled(false);
+            spinnerRole.setEnabled(false);
+            btnSave.setEnabled(false);
+            Toast.makeText(getActivity(), "Your current role is a MEMBER", Toast.LENGTH_SHORT).show();
         }
 
-        // Set button actions
-        btnCancel.setOnClickListener(v -> dismiss());
-
-        btnSave.setOnClickListener(v -> {
-            String username = etUserName.getText().toString().trim();
-            String email = etEmail.getText().toString().trim();
-            String selectedRole = spinnerRole.getSelectedItem().toString(); // Get selected role
-
-            if (!username.isEmpty() && !email.isEmpty()) {
-                if (parentFragment != null) {
-                    parentFragment.addUserToDatabase(username, email, selectedRole);
-                    dismiss();
-                } else {
-                    Toast.makeText(getActivity(), "Parent fragment is not set", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(getActivity(), "Please fill all fields", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        return view;
+    } else {
+        Toast.makeText(getActivity(), "Current user role is not set", Toast.LENGTH_SHORT).show();
+        dismiss(); // Close the dialog if role is not set
     }
+
+    btnCancel.setOnClickListener(v -> dismiss());
+
+    btnSave.setOnClickListener(v -> {
+        String username = etUserName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String selectedRole = spinnerRole.getSelectedItem().toString();
+
+        if (!username.isEmpty() && !email.isEmpty()) {
+            if (parentFragment != null) {
+                parentFragment.addUserToDatabase(username, email, selectedRole);
+                dismiss();
+            } else {
+                Toast.makeText(getActivity(), "Parent fragment is not set", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getActivity(), "Please fill all fields", Toast.LENGTH_SHORT).show();
+        }
+    });
+
+    return view;
+}
 
     // Method to determine allowed roles based on the current user's role
     private List<String> getAllowedRoles(Role currentUserRole) {
@@ -115,6 +123,7 @@ public void onStart() {
                 break;
             case MEMBER:
                 // MEMBER cannot create any users, so the list remains empty
+                allowedRoles.add("Available for STAFF or ADMIN only");
                 break;
         }
 

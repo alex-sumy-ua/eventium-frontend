@@ -14,6 +14,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.gamboom.eventiumfrontend.R;
+import com.gamboom.eventiumfrontend.model.User;
+import com.gamboom.eventiumfrontend.service.AppSession;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +26,12 @@ public class AddEventDialogFragment extends DialogFragment {
     private Button btnSave, btnCancel;
 
     private EventFragment parentFragment; // Add reference to the parent fragment
+
+    private final User currentUser;
+
+    public AddEventDialogFragment() {
+        this.currentUser = AppSession.getInstance().getCurrentUser();
+    }
 
     // Add a method to set the parent fragment
     public void setParentFragment(EventFragment parentFragment) {
@@ -50,42 +58,59 @@ public class AddEventDialogFragment extends DialogFragment {
         btnSave = view.findViewById(R.id.btn_save);
         btnCancel = view.findViewById(R.id.btn_cancel);
 
+        // Cancel always enabled
         btnCancel.setOnClickListener(v -> dismiss());
 
+        // Restrict MEMBER access
+        if (currentUser != null && currentUser.getRole().name().equals("MEMBER")) {
+            // Set message in the title field
+            etEventDescription.setText("Available for STAFF or ADMIN only");
+
+            // Disable all inputs
+            etEventTitle.setEnabled(false);
+            etEventDescription.setEnabled(false);
+            etEventLocation.setEnabled(false);
+            datePickerStart.setEnabled(false);
+            timePickerStart.setEnabled(false);
+            datePickerEnd.setEnabled(false);
+            timePickerEnd.setEnabled(false);
+            btnSave.setEnabled(false);
+
+            // Show a toast
+            Toast.makeText(getActivity(), "Your current role is a MEMBER", Toast.LENGTH_SHORT).show();
+
+            return view;
+        }
+
+        // Staff or Admin logic
         btnSave.setOnClickListener(v -> {
             String eventTitle = etEventTitle.getText().toString().trim();
             String eventDescription = etEventDescription.getText().toString().trim();
             String eventLocation = etEventLocation.getText().toString().trim();
 
-            // Get the selected date and time for the start and end times
             int startYear = datePickerStart.getYear();
-            int startMonth = datePickerStart.getMonth() + 1;  // Month is 0-based
+            int startMonth = datePickerStart.getMonth() + 1;
             int startDay = datePickerStart.getDayOfMonth();
             int startHour = timePickerStart.getHour();
             int startMinute = timePickerStart.getMinute();
 
             int endYear = datePickerEnd.getYear();
-            int endMonth = datePickerEnd.getMonth() + 1;  // Month is 0-based
+            int endMonth = datePickerEnd.getMonth() + 1;
             int endDay = datePickerEnd.getDayOfMonth();
             int endHour = timePickerEnd.getHour();
             int endMinute = timePickerEnd.getMinute();
 
-            // Convert to LocalDateTime
             LocalDateTime eventStartTime = LocalDateTime.of(startYear, startMonth, startDay, startHour, startMinute);
             LocalDateTime eventEndTime = LocalDateTime.of(endYear, endMonth, endDay, endHour, endMinute);
+
             if (eventEndTime.isBefore(eventStartTime)) {
                 Toast.makeText(getActivity(), "End time must be after start time", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Validate input and save event
-            if (!eventTitle.isEmpty() && !eventLocation.isEmpty() && eventStartTime != null) {
+            if (!eventTitle.isEmpty() && !eventLocation.isEmpty()) {
                 if (parentFragment != null) {
-                    parentFragment.addEventToDatabase(eventTitle,
-                                                      eventDescription,
-                                                      eventLocation,
-                                                      eventStartTime,
-                                                      eventEndTime);
+                    parentFragment.addEventToDatabase(eventTitle, eventDescription, eventLocation, eventStartTime, eventEndTime);
                     dismiss();
                 } else {
                     Toast.makeText(getActivity(), "Parent fragment is not set", Toast.LENGTH_SHORT).show();
