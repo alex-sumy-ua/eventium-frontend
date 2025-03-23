@@ -5,11 +5,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.gamboom.eventiumfrontend.R;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 
 import java.time.format.DateTimeFormatter;
@@ -20,6 +22,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
     private List<User> users;
     private final OnUserActionListener listener;
+    private final Role currentUserRole;
 
     public interface OnUserActionListener {
         void onEditUser(User user);
@@ -29,6 +32,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     public UserAdapter(List<User> users, OnUserActionListener listener) {
         this.users = users != null ? users : new ArrayList<>();
         this.listener = listener;
+        this.currentUserRole = AppSession.getInstance().getCurrentUser().getRole();
     }
 
     @NonNull
@@ -49,11 +53,19 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         holder.userCreatedAt.setText(user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "N/A");
 
         holder.btnEdit.setOnClickListener(v -> {
-            if (listener != null) listener.onEditUser(user);
+            if ((currentUserRole == Role.STAFF || currentUserRole == Role.ADMIN) && listener != null) {
+                listener.onEditUser(user);
+            }else {
+                Toast.makeText(v.getContext(), "For STAFF or ADMIN ONLY", Toast.LENGTH_SHORT).show();
+            }
         });
 
         holder.btnDelete.setOnClickListener(v -> {
-            if (listener != null) listener.onDeleteUser(user);
+            if (currentUserRole == Role.STAFF && listener != null) {
+                listener.onDeleteUser(user);
+                }else {
+                Toast.makeText(v.getContext(), "For STAFF ONLY", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 

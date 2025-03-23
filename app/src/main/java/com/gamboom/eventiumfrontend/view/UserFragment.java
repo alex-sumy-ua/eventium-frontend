@@ -69,7 +69,13 @@ public class UserFragment extends Fragment implements UserAdapter.OnUserActionLi
         fetchUsers();
 
         FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
-        fabAdd.setOnClickListener(v -> openAddUserDialog());
+        fabAdd.setOnClickListener(v -> {
+            if (currentUser != null && (currentUser.getRole() == Role.STAFF || currentUser.getRole() == Role.ADMIN)) {
+                openAddUserDialog();
+            } else {
+                Toast.makeText(getContext(), "For STAFF or ADMIN ONLY", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return view;
     }

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Event;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.EventRepository;
 import com.gamboom.eventiumfrontend.repository.UserRepository;
@@ -42,9 +43,7 @@ public class EventFragment extends Fragment {
 
     private User currentUser;
 
-    public EventFragment() {
-        // Required empty public constructor
-    }
+    public EventFragment() {}
 
     @Nullable
     @Override
@@ -62,7 +61,14 @@ public class EventFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_event, container, false);
 
         FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
-        fabAdd.setOnClickListener(v -> openAddEventDialog());
+        if (currentUser != null && currentUser.getRole() == Role.STAFF) {
+            fabAdd.setOnClickListener(v -> openAddEventDialog());
+        } else {
+            fabAdd.setOnClickListener(v ->
+                    Toast.makeText(getContext(), "For STAFF ONLY",
+                    Toast.LENGTH_SHORT).show()
+            );
+        }
 
         return view;
     }
@@ -72,19 +78,29 @@ public class EventFragment extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize repositories
         eventRepository = new EventRepository();
         userRepository = new UserRepository();
 
-        // Setup RecyclerView
         eventRecyclerView = view.findViewById(R.id.eventRecyclerView);
         eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Initialize Adapter with empty lists
-        eventAdapter = new EventAdapter(new ArrayList<>(), new ArrayList<>());
+        eventAdapter = new EventAdapter(new ArrayList<>(),
+                                        new ArrayList<>(),
+                                        currentUser,
+                                        new EventAdapter.OnEventActionListener() {
+
+            @Override
+            public void onEdit(Event event) {
+                openEditEventDialog(event);
+            }
+
+            @Override
+            public void onDelete(Event event) {
+                deleteEvent(event);
+            }
+        });
         eventRecyclerView.setAdapter(eventAdapter);
 
-        // Fetch events and users
         fetchEvents();
     }
 
@@ -95,20 +111,8 @@ public class EventFragment extends Fragment {
                                    @NonNull Response<List<Event>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     events = response.body();
-                    Log.d("EventFragment", "Events loaded: " + events.size());
                     fetchUsers();
                 } else {
-                    Log.e("EventFragment", "Failed to load events. HTTP " + response.code());
-
-                    if (response.errorBody() != null) {
-                        try {
-                            String error = response.errorBody().string();
-                            Log.e("EventFragment", "Raw error body: " + error);
-                        } catch (Exception e) {
-                            Log.e("EventFragment", "Error parsing errorBody", e);
-                        }
-                    }
-
                     showError("Failed to load events. Try again.");
                 }
             }
@@ -116,55 +120,60 @@ public class EventFragment extends Fragment {
             @Override
             public void onFailure(@NonNull Call<List<Event>> call, @NonNull Throwable t) {
                 showError("API: Unable to load events.");
-                Log.e("EventFragment", "❌ Exception while loading events", t);
             }
         });
     }
 
     private void fetchUsers() {
-
         userRepository.getAllUsers().enqueue(new Callback<List<User>>() {
             @Override
             public void onResponse(@NonNull Call<List<User>> call,
                                    @NonNull Response<List<User>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     users = response.body();
-                    Log.d("EventFragment", "Users loaded successfully: " + users.size());
                     eventAdapter.updateData(events, users);
                 } else {
-
-                    if (response.errorBody() != null) {
-                        try {
-                            String error = response.errorBody().string();
-                            Log.e("EventFragment", "Raw error response: " + error);
-                        } catch (Exception e) {
-                            Log.e("EventFragment", "Error reading errorBody", e);
-                        }
-                    }
-
                     showError("Failed to load users.");
-                    Log.e("EventFragment", "Failed to load users. Response code: " + response.code());
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<User>> call,
-                                  @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<User>> call, @NonNull Throwable t) {
                 showError("API: Unable to load users.");
-                Log.e("EventFragment", "Network error: Unable to load users.", t);
             }
         });
     }
 
-    private void showError(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-        Log.e("EventFragment", message);
+    private void deleteEvent(Event event) {
+        eventRepository.deleteEvent(event.getEventId()).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Event deleted", Toast.LENGTH_SHORT).show();
+                    fetchEvents();
+                } else {
+                    showError("Failed to delete event");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                showError("Error deleting event");
+            }
+        });
     }
 
     private void openAddEventDialog() {
         AddEventDialogFragment dialog = new AddEventDialogFragment();
-        dialog.setParentFragment(this); // Pass the parent fragment
+        dialog.setParentFragment(this);
         dialog.show(getParentFragmentManager(), "AddEventDialog");
+    }
+
+    private void openEditEventDialog(Event event) {
+        AddEventDialogFragment dialog = new AddEventDialogFragment();
+        dialog.setParentFragment(this);
+        dialog.setEditingEvent(event);
+        dialog.show(getParentFragmentManager(), "EditEventDialog");
     }
 
     public void addEventToDatabase(String eventTitle,
@@ -174,11 +183,9 @@ public class EventFragment extends Fragment {
                                    LocalDateTime eventEndTime) {
         if (currentUser == null) {
             showError("Error: No current user found.");
-            Log.e("EventFragment", "Attempted to create event with null currentUserId.");
             return;
         }
 
-        // Create a new Event object with the provided data
         Event newEvent = new Event();
         newEvent.setTitle(eventTitle);
         newEvent.setDescription(eventDescription);
@@ -188,27 +195,45 @@ public class EventFragment extends Fragment {
         newEvent.setCreatedBy(currentUser.getUserId());
         newEvent.setCreatedAt(LocalDateTime.now());
 
-        // Call the API method in the EventRepository to create a new event
         eventRepository.createEvent(newEvent).enqueue(new Callback<Event>() {
             @Override
-            public void onResponse(@NonNull Call<Event> call,
-                                   @NonNull Response<Event> response) {
+            public void onResponse(@NonNull Call<Event> call, @NonNull Response<Event> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(getContext(), "Event added successfully", Toast.LENGTH_SHORT).show();
-                    Log.d("EventFragment", "Event created successfully: " + response.body().getTitle());
-                    fetchEvents(); // Refresh the event list
+                    fetchEvents();
                 } else {
                     showError("Failed to add event. Response code: " + response.code());
-                    Log.e("EventFragment", "Failed to add event. Response code: " + response.code());
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<Event> call,
-                                  @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<Event> call, @NonNull Throwable t) {
                 showError("Error adding event.");
-                Log.e("EventFragment", "Error adding event", t);
             }
         });
+    }
+
+    public void updateEventInDatabase(Event event) {
+        eventRepository.updateEvent(event.getEventId(), event).enqueue(new Callback<Event>() {
+            @Override
+            public void onResponse(@NonNull Call<Event> call, @NonNull Response<Event> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Event updated successfully", Toast.LENGTH_SHORT).show();
+                    fetchEvents();
+                } else {
+                    showError("Failed to update event.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Event> call, @NonNull Throwable t) {
+                showError("Error updating event.");
+            }
+        });
+    }
+
+    private void showError(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        Log.e("EventFragment", message);
     }
 }

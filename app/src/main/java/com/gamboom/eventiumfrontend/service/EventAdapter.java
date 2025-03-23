@@ -3,13 +3,16 @@ package com.gamboom.eventiumfrontend.service;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Event;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 
 import java.time.format.DateTimeFormatter;
@@ -19,65 +22,72 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import android.util.Log;
-
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
     private final List<Event> eventList;
     private final Map<UUID, String> userNames;
+    private final OnEventActionListener actionListener;
+    private final Role currentUserRole;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public EventAdapter(List<Event> eventList, List<User> userList) {
-        this.eventList = eventList != null ? eventList : new ArrayList<>(); // Prevent NullPointerException
-        this.userNames = new HashMap<>();
+    public interface OnEventActionListener {
+        void onEdit(Event event);
+        void onDelete(Event event);
+    }
 
-        if (userList != null) { // Prevent NullPointerException
+    public EventAdapter(List<Event> eventList, List<User> userList, User currentUser, OnEventActionListener actionListener) {
+        this.eventList = eventList != null ? eventList : new ArrayList<>();
+        this.userNames = new HashMap<>();
+        this.currentUserRole = currentUser != null ? currentUser.getRole() : null;
+        this.actionListener = actionListener;
+
+        if (userList != null) {
             for (User user : userList) {
-                userNames.put(user.getUserId(), user.getName());  // Ensure these getters exist
+                userNames.put(user.getUserId(), user.getName());
             }
         }
-        Log.d("EventAdapter", "List of users: " + userList);
-        Log.d("EventAdapter", "List of names: " + userNames);
     }
 
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.event_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.event_item, parent, false);
         return new EventViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = eventList.get(position);
+
         holder.title.setText(event.getTitle());
         holder.description.setText(event.getDescription());
         holder.location.setText(event.getLocation());
+        holder.startTime.setText(event.getStartTime() != null ? event.getStartTime().format(FORMATTER) : "N/A");
+        holder.endTime.setText(event.getEndTime() != null ? event.getEndTime().format(FORMATTER) : "N/A");
+        holder.createdAt.setText(event.getCreatedAt() != null ? event.getCreatedAt().format(FORMATTER) : "N/A");
 
-        // Format createdAt with DateTimeFormatter and handle null value
-        holder.startTime.setText(event.getStartTime() != null
-                ? event.getStartTime().format(FORMATTER)
-                : "N/A");
-        holder.endTime.setText(event.getEndTime() != null
-                ? event.getEndTime().format(FORMATTER)
-                : "N/A");
-        holder.createdAt.setText(event.getCreatedAt() != null
-                ? event.getCreatedAt().format(FORMATTER)
-                : "N/A");
+        String creatorName = userNames.getOrDefault(event.getCreatedBy(), "Unknown");
+        holder.createdBy.setText(creatorName);
 
-        // Log the createdBy UUID value
-        Log.d("EventAdapter", "CreatedBy UUID: " + event.getCreatedBy());
+        holder.btnEdit.setVisibility(View.VISIBLE);
+        holder.btnDelete.setVisibility(View.VISIBLE);
 
-        // Check if createdBy UUID exists in the map and fetch the name
-        if (event.getCreatedBy() != null && userNames.containsKey(event.getCreatedBy())) {
-            String creatorName = userNames.get(event.getCreatedBy());
-            holder.createdBy.setText(creatorName);
-        } else {
-            // If no user is found in the map, set "Unknown"
-            holder.createdBy.setText("Unknown");
-        }
+        holder.btnEdit.setOnClickListener(v -> {
+            if (currentUserRole == Role.STAFF) {
+                actionListener.onEdit(event);
+            } else {
+                Toast.makeText(v.getContext(), "For STAFF ONLY", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        holder.btnDelete.setOnClickListener(v -> {
+            if (currentUserRole == Role.STAFF) {
+                actionListener.onDelete(event);
+            } else {
+                Toast.makeText(v.getContext(), "For STAFF ONLY", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -85,14 +95,23 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         return eventList.size();
     }
 
+    public void updateData(List<Event> newEvents, List<User> userList) {
+        eventList.clear();
+        eventList.addAll(newEvents != null ? newEvents : new ArrayList<>());
+
+        userNames.clear();
+        if (userList != null) {
+            for (User user : userList) {
+                userNames.put(user.getUserId(), user.getName());
+            }
+        }
+
+        notifyDataSetChanged();
+    }
+
     static class EventViewHolder extends RecyclerView.ViewHolder {
-        TextView title;
-        TextView description;
-        TextView location;
-        TextView startTime;
-        TextView endTime;
-        TextView createdAt;
-        TextView createdBy;
+        TextView title, description, location, startTime, endTime, createdAt, createdBy;
+        ImageButton btnEdit, btnDelete;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -103,23 +122,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             endTime = itemView.findViewById(R.id.eventEndTime);
             createdAt = itemView.findViewById(R.id.eventCreatedAt);
             createdBy = itemView.findViewById(R.id.eventCreatedBy);
+            btnEdit = itemView.findViewById(R.id.btn_edit_event);
+            btnDelete = itemView.findViewById(R.id.btn_delete_event);
         }
-    }
-
-    public void updateData(List<Event> newEvents, List<User> userList) {
-        // Update the events list
-        eventList.clear();
-        eventList.addAll(newEvents != null ? newEvents : new ArrayList<>());
-
-        // Update the userNames map
-        userNames.clear();
-        if (userList != null) {
-            for (User user : userList) {
-                userNames.put(user.getUserId(), user.getName());
-            }
-        }
-
-        // Notify the adapter of changes
-        notifyDataSetChanged();
     }
 }

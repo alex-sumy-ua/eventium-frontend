@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:padding="8dp">
 
-    <!-- text_event TextView remains untouched -->
     <TextView
         android:id="@+id/text_event"
         android:layout_width="wrap_content"
@@ -17,7 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- eventTitle with improved spacing -->
     <TextView
         android:id="@+id/eventTitle"
         android:layout_width="0dp"
@@ -25,83 +23,98 @@
         android:text="Title"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_event"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintEnd_toStartOf="@id/btn_edit_event" />
 
-    <!-- eventDescription with improved spacing -->
     <TextView
         android:id="@+id/eventDescription"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Description"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="4dp"
         app:layout_constraintTop_toBottomOf="@id/eventTitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- eventLocation with improved spacing -->
     <TextView
         android:id="@+id/eventLocation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Location"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="4dp"
         app:layout_constraintTop_toBottomOf="@id/eventDescription"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- eventStartTime with improved spacing -->
     <TextView
         android:id="@+id/eventStartTime"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Start Time"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="4dp"
         app:layout_constraintTop_toBottomOf="@id/eventLocation"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- eventEndTime with improved spacing -->
     <TextView
         android:id="@+id/eventEndTime"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="End Time"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="4dp"
         app:layout_constraintTop_toBottomOf="@id/eventStartTime"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- eventCreatedAt with improved spacing -->
     <TextView
         android:id="@+id/eventCreatedAt"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Created At"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="4dp"
         app:layout_constraintTop_toBottomOf="@id/eventEndTime"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- eventCreatedBy with improved spacing -->
     <TextView
         android:id="@+id/eventCreatedBy"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Created By"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="8dp"
         app:layout_constraintTop_toBottomOf="@id/eventCreatedAt"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="8dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Edit Button -->
+    <ImageButton
+        android:id="@+id/btn_edit_event"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:contentDescription="Edit Event"
+        android:src="@android:drawable/ic_menu_edit"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Delete Button -->
+    <ImageButton
+        android:id="@+id/btn_delete_event"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:contentDescription="Delete Event"
+        android:src="@android:drawable/ic_menu_delete"
+        app:layout_constraintTop_toBottomOf="@id/btn_edit_event"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

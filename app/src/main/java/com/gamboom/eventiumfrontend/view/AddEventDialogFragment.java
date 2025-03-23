@@ -14,6 +14,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.gamboom.eventiumfrontend.R;
+import com.gamboom.eventiumfrontend.model.Event;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.service.AppSession;
 
@@ -25,48 +27,42 @@ public class AddEventDialogFragment extends DialogFragment {
     private TimePicker timePickerStart, timePickerEnd;
     private Button btnSave, btnCancel;
 
-    private EventFragment parentFragment; // Add reference to the parent fragment
-
+    private EventFragment parentFragment;
     private final User currentUser;
+
+    private Event editingEvent;
 
     public AddEventDialogFragment() {
         this.currentUser = AppSession.getInstance().getCurrentUser();
     }
 
-    // Add a method to set the parent fragment
     public void setParentFragment(EventFragment parentFragment) {
         this.parentFragment = parentFragment;
     }
 
+    public void setEditingEvent(Event editingEvent) {
+        this.editingEvent = editingEvent;
+    }
+
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             Bundle savedInstanceState) {
-
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_add_update_event, container, false);
 
         etEventTitle = view.findViewById(R.id.et_eventtitle);
         etEventDescription = view.findViewById(R.id.et_eventdescription);
         etEventLocation = view.findViewById(R.id.et_eventlocation);
-
         datePickerStart = view.findViewById(R.id.date_picker_start);
         timePickerStart = view.findViewById(R.id.time_picker_start);
         datePickerEnd = view.findViewById(R.id.date_picker_end);
         timePickerEnd = view.findViewById(R.id.time_picker_end);
-
         btnSave = view.findViewById(R.id.btn_save);
         btnCancel = view.findViewById(R.id.btn_cancel);
 
-        // Cancel always enabled
         btnCancel.setOnClickListener(v -> dismiss());
 
-        // Restrict MEMBER access
-        if (currentUser != null && currentUser.getRole().name().equals("MEMBER")) {
-            // Set message in the title field
-            etEventDescription.setText("Available for STAFF or ADMIN only");
-
-            // Disable all inputs
+        if (currentUser != null && currentUser.getRole() == Role.MEMBER) {
+            etEventTitle.setText("Available for STAFF or ADMIN only");
             etEventTitle.setEnabled(false);
             etEventDescription.setEnabled(false);
             etEventLocation.setEnabled(false);
@@ -75,18 +71,34 @@ public class AddEventDialogFragment extends DialogFragment {
             datePickerEnd.setEnabled(false);
             timePickerEnd.setEnabled(false);
             btnSave.setEnabled(false);
-
-            // Show a toast
             Toast.makeText(getActivity(), "Your current role is a MEMBER", Toast.LENGTH_SHORT).show();
-
             return view;
         }
 
-        // Staff or Admin logic
+        if (editingEvent != null) {
+            etEventTitle.setText(editingEvent.getTitle());
+            etEventDescription.setText(editingEvent.getDescription());
+            etEventLocation.setText(editingEvent.getLocation());
+
+            LocalDateTime start = editingEvent.getStartTime();
+            LocalDateTime end = editingEvent.getEndTime();
+
+            if (start != null) {
+                datePickerStart.updateDate(start.getYear(), start.getMonthValue() - 1, start.getDayOfMonth());
+                timePickerStart.setHour(start.getHour());
+                timePickerStart.setMinute(start.getMinute());
+            }
+            if (end != null) {
+                datePickerEnd.updateDate(end.getYear(), end.getMonthValue() - 1, end.getDayOfMonth());
+                timePickerEnd.setHour(end.getHour());
+                timePickerEnd.setMinute(end.getMinute());
+            }
+        }
+
         btnSave.setOnClickListener(v -> {
-            String eventTitle = etEventTitle.getText().toString().trim();
-            String eventDescription = etEventDescription.getText().toString().trim();
-            String eventLocation = etEventLocation.getText().toString().trim();
+            String title = etEventTitle.getText().toString().trim();
+            String description = etEventDescription.getText().toString().trim();
+            String location = etEventLocation.getText().toString().trim();
 
             int startYear = datePickerStart.getYear();
             int startMonth = datePickerStart.getMonth() + 1;
@@ -100,17 +112,26 @@ public class AddEventDialogFragment extends DialogFragment {
             int endHour = timePickerEnd.getHour();
             int endMinute = timePickerEnd.getMinute();
 
-            LocalDateTime eventStartTime = LocalDateTime.of(startYear, startMonth, startDay, startHour, startMinute);
-            LocalDateTime eventEndTime = LocalDateTime.of(endYear, endMonth, endDay, endHour, endMinute);
+            LocalDateTime startTime = LocalDateTime.of(startYear, startMonth, startDay, startHour, startMinute);
+            LocalDateTime endTime = LocalDateTime.of(endYear, endMonth, endDay, endHour, endMinute);
 
-            if (eventEndTime.isBefore(eventStartTime)) {
+            if (endTime.isBefore(startTime)) {
                 Toast.makeText(getActivity(), "End time must be after start time", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            if (!eventTitle.isEmpty() && !eventLocation.isEmpty()) {
+            if (!title.isEmpty() && !location.isEmpty()) {
                 if (parentFragment != null) {
-                    parentFragment.addEventToDatabase(eventTitle, eventDescription, eventLocation, eventStartTime, eventEndTime);
+                    if (editingEvent != null) {
+                        editingEvent.setTitle(title);
+                        editingEvent.setDescription(description);
+                        editingEvent.setLocation(location);
+                        editingEvent.setStartTime(startTime);
+                        editingEvent.setEndTime(endTime);
+                        parentFragment.updateEventInDatabase(editingEvent);
+                    } else {
+                        parentFragment.addEventToDatabase(title, description, location, startTime, endTime);
+                    }
                     dismiss();
                 } else {
                     Toast.makeText(getActivity(), "Parent fragment is not set", Toast.LENGTH_SHORT).show();
@@ -122,5 +143,4 @@ public class AddEventDialogFragment extends DialogFragment {
 
         return view;
     }
-
 }
