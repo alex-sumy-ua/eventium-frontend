@@ -1,4 +1,4 @@
-package com.gamboom.eventiumfrontend.network;
+package com.gamboom.eventiumfrontend.service;
 
 import com.gamboom.eventiumfrontend.model.Registration;
 

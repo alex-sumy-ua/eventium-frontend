@@ -1,5 +1,6 @@
 package com.gamboom.eventiumfrontend.view;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -159,26 +160,29 @@ public class UserFragment extends Fragment implements UserAdapter.OnUserActionLi
     public void onDeleteUser(User user) {
         if (currentUser.getRole() == Role.STAFF ||
                 (currentUser.getRole() == Role.ADMIN && user.getRole() != Role.ADMIN)) {
-            userRepository.deleteUser(user.getUserId()).enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
-                    if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "User deleted", Toast.LENGTH_SHORT).show();
-                        fetchUsers();
-                    } else {
-                        Toast.makeText(getContext(), "Failed to delete user", Toast.LENGTH_SHORT).show();
+            showDeleteConfirmationDialog("Are you sure you want to delete this user?", () -> {
+                userRepository.deleteUser(user.getUserId()).enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(getContext(), "User deleted", Toast.LENGTH_SHORT).show();
+                            fetchUsers();
+                        } else {
+                            Toast.makeText(getContext(), "Failed to delete user", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-                    Toast.makeText(getContext(), "Error deleting user", Toast.LENGTH_SHORT).show();
-                }
+                    @Override
+                    public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                        Toast.makeText(getContext(), "Error deleting user", Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
         } else {
             Toast.makeText(getContext(), "You do not have permission to delete this user", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     public void updateUserInDatabase(UUID userId, User updatedUser) {
         userRepository.updateUser(userId, updatedUser).enqueue(new Callback<User>() {
@@ -198,4 +202,14 @@ public class UserFragment extends Fragment implements UserAdapter.OnUserActionLi
             }
         });
     }
+
+    private void showDeleteConfirmationDialog(String message, Runnable onConfirm) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Confirm Deletion")
+                .setMessage(message)
+                .setPositiveButton("Delete", (dialog, which) -> onConfirm.run())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
 }

@@ -67,7 +67,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     @Override
     public RegistrationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.registration_item, parent, false);
+                .inflate(R.layout.item_registration, parent, false);
         return new RegistrationViewHolder(view);
     }
 

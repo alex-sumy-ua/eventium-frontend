@@ -1,6 +1,5 @@
-package com.gamboom.eventiumfrontend.network;
+package com.gamboom.eventiumfrontend.service;
 
-import com.gamboom.eventiumfrontend.service.LocalDateTimeConverter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

@@ -1,8 +1,8 @@
 package com.gamboom.eventiumfrontend.repository;
 
 import com.gamboom.eventiumfrontend.model.Registration;
-import com.gamboom.eventiumfrontend.network.RegistrationApiService;
-import com.gamboom.eventiumfrontend.network.RetrofitClient;
+import com.gamboom.eventiumfrontend.service.RegistrationApiService;
+import com.gamboom.eventiumfrontend.service.RetrofitClient;
 import com.gamboom.eventiumfrontend.service.AppSession;
 
 import java.util.List;

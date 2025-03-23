@@ -17,8 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.gamboom.eventiumfrontend.MainActivity;
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.User;
-import com.gamboom.eventiumfrontend.network.UserApiService;
-import com.gamboom.eventiumfrontend.network.RetrofitClient;
 
 import retrofit2.Call;
 import retrofit2.Callback;

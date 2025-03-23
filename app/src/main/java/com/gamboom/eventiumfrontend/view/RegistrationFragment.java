@@ -1,5 +1,6 @@
 package com.gamboom.eventiumfrontend.view;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -277,4 +278,14 @@ public class RegistrationFragment extends Fragment {
                 "Registration clicked:\nUser: " + userName + "\nEvent: " + eventTitle,
                 Toast.LENGTH_LONG).show();
     }
+
+    private void showDeleteConfirmationDialog(String message, Runnable onConfirm) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Confirm Deletion")
+                .setMessage(message)
+                .setPositiveButton("Delete", (dialog, which) -> onConfirm.run())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
 }

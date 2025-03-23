@@ -1,11 +1,10 @@
 package com.gamboom.eventiumfrontend.repository;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.gamboom.eventiumfrontend.model.Event;
-import com.gamboom.eventiumfrontend.network.EventApiService;
-import com.gamboom.eventiumfrontend.network.RetrofitClient;
+import com.gamboom.eventiumfrontend.service.EventApiService;
+import com.gamboom.eventiumfrontend.service.RetrofitClient;
 import com.gamboom.eventiumfrontend.service.AppSession;
 
 import java.util.List;

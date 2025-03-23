@@ -1,5 +1,6 @@
 package com.gamboom.eventiumfrontend.view;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -66,7 +67,7 @@ public class EventFragment extends Fragment {
         } else {
             fabAdd.setOnClickListener(v ->
                     Toast.makeText(getContext(), "For STAFF ONLY",
-                    Toast.LENGTH_SHORT).show()
+                            Toast.LENGTH_SHORT).show()
             );
         }
 
@@ -84,19 +85,25 @@ public class EventFragment extends Fragment {
         eventRecyclerView = view.findViewById(R.id.eventRecyclerView);
         eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        eventAdapter = new EventAdapter(new ArrayList<>(),
-                                        new ArrayList<>(),
-                                        currentUser,
-                                        new EventAdapter.OnEventActionListener() {
-
+        eventAdapter = new EventAdapter(new ArrayList<>()
+                , new ArrayList<>(), currentUser, new EventAdapter.OnEventActionListener() {
             @Override
             public void onEdit(Event event) {
-                openEditEventDialog(event);
+                if (currentUser.getRole() == Role.STAFF) {
+                    openEditEventDialog(event);
+                } else {
+                    Toast.makeText(getContext(), "Only STAFF can edit events", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
             public void onDelete(Event event) {
-                deleteEvent(event);
+                if (currentUser.getRole() == Role.STAFF) {
+                    showDeleteConfirmationDialog("Are you sure you want to delete this event?",
+                            () -> deleteEvent(event));
+                } else {
+                    Toast.makeText(getContext(), "Only STAFF can delete events", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         eventRecyclerView.setAdapter(eventAdapter);
@@ -235,5 +242,14 @@ public class EventFragment extends Fragment {
     private void showError(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         Log.e("EventFragment", message);
+    }
+
+    private void showDeleteConfirmationDialog(String message, Runnable onConfirm) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Confirm Deletion")
+                .setMessage(message)
+                .setPositiveButton("Delete", (dialog, which) -> onConfirm.run())
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }

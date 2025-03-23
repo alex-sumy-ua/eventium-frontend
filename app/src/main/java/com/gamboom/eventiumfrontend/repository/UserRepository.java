@@ -1,8 +1,8 @@
 package com.gamboom.eventiumfrontend.repository;
 
 import com.gamboom.eventiumfrontend.model.User;
-import com.gamboom.eventiumfrontend.network.RetrofitClient;
-import com.gamboom.eventiumfrontend.network.UserApiService;
+import com.gamboom.eventiumfrontend.service.RetrofitClient;
+import com.gamboom.eventiumfrontend.service.UserApiService;
 import com.gamboom.eventiumfrontend.service.AppSession;
 
 import java.util.List;
