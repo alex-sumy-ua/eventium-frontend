@@ -32,7 +32,6 @@ public class Registration {
         this.registrationTime = registrationTime;
     }
 
-    // Getters and setters
     public UUID getEventRegistrationId() {
         return eventRegistrationId;
     }
@@ -64,4 +63,5 @@ public class Registration {
     public void setRegistrationTime(LocalDateTime registrationTime) {
         this.registrationTime = registrationTime;
     }
+
 }

@@ -252,4 +252,5 @@ public class EventFragment extends Fragment {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
+
 }

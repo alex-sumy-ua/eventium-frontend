@@ -39,4 +39,5 @@ public class RegistrationRepository {
     public Call<Void> deleteRegistration(UUID id) {
         return registrationApiService.deleteRegistration("Bearer " + authToken, id);
     }
+
 }

@@ -126,4 +126,5 @@ public class AddUserDialogFragment extends DialogFragment {
         }
         return allowedRoles;
     }
+
 }

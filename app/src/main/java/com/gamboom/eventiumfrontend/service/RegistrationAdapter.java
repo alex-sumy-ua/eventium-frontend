@@ -202,4 +202,5 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     public boolean isShowingOnlyMine() {
         return showOnlyMine;
     }
+
 }

@@ -169,4 +169,5 @@ public class AddRegistrationDialogFragment extends DialogFragment {
         eventLocation.setVisibility(View.VISIBLE);
         btnRegister.setVisibility(View.VISIBLE);
     }
+
 }

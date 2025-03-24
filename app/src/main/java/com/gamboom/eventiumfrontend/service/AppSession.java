@@ -1,8 +1,5 @@
 package com.gamboom.eventiumfrontend.service;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-
 import com.gamboom.eventiumfrontend.model.User;
 
 public class AppSession {
@@ -37,4 +34,5 @@ public class AppSession {
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
     }
+
 }

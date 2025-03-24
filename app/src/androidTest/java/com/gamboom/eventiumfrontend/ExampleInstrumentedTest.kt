@@ -21,4 +21,5 @@ class ExampleInstrumentedTest {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.gamboom.eventiumfrontend", appContext.packageName)
     }
+
 }

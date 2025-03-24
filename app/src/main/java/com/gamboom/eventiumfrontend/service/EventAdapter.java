@@ -126,4 +126,5 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             btnDelete = itemView.findViewById(R.id.btn_delete_event);
         }
     }
+
 }

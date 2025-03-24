@@ -96,4 +96,5 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
+
 }
