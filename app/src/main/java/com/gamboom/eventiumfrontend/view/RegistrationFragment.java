@@ -79,12 +79,7 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
         eventRepository = new EventRepository();
         userRepository = new UserRepository();
 
-        registrationAdapter = new RegistrationAdapter(
-                registrations,
-                events,
-                users,
-                this
-        );
+        registrationAdapter = new RegistrationAdapter(registrations, events, users, this);
         registrationRecyclerView.setAdapter(registrationAdapter);
 
         fabAdd.setOnClickListener(v -> openAddRegistrationDialog());
@@ -107,12 +102,9 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
                     eventIdsToFetch.clear();
                     userIdsToFetch.clear();
 
-                    for (Registration registration : registrations) {
-                        if (registration.getEventId() != null)
-                            eventIdsToFetch.add(registration.getEventId());
-                        if (registration.getUserId() != null)
-                            userIdsToFetch.add(registration.getUserId());
-                        Log.d("RegistrationDebug", "Registration - UserID: " + registration.getUserId() + ", EventID: " + registration.getEventId());
+                    for (Registration r : registrations) {
+                        if (r.getEventId() != null) eventIdsToFetch.add(r.getEventId());
+                        if (r.getUserId() != null) userIdsToFetch.add(r.getUserId());
                     }
 
                     if (currentUser != null) {
@@ -120,7 +112,6 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
                     }
 
                     Log.d("RegistrationFragment", "Registrations loaded: " + registrations.size());
-
                     fetchEvents();
                     fetchUsers();
                 } else {
@@ -156,13 +147,12 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
 
                 @Override
                 public void onFailure(@NonNull Call<Event> call, @NonNull Throwable t) {
-                    checkIfAllEventsFetched();
                     showError("Error fetching event.");
+                    checkIfAllEventsFetched();
                 }
 
                 private void checkIfAllEventsFetched() {
                     fetchedEventsCount++;
-                    Log.d("RegistrationFragment", "Fetched event count: " + fetchedEventsCount + "/" + eventIdsToFetch.size());
                     if (fetchedEventsCount == eventIdsToFetch.size()) {
                         Log.d("RegistrationFragment", "All events fetched: " + events.size());
                         updateAdapterIfReady();
@@ -193,13 +183,12 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
 
                 @Override
                 public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
-                    checkIfAllUsersFetched();
                     showError("Error fetching user.");
+                    checkIfAllUsersFetched();
                 }
 
                 private void checkIfAllUsersFetched() {
                     fetchedUsersCount++;
-                    Log.d("RegistrationFragment", "Fetched user count: " + fetchedUsersCount + "/" + userIdsToFetch.size());
                     if (fetchedUsersCount == userIdsToFetch.size()) {
                         Log.d("RegistrationFragment", "All users fetched: " + users.size());
                         updateAdapterIfReady();
@@ -210,20 +199,18 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
     }
 
     private void updateAdapterIfReady() {
-        Log.d("RegistrationFragment", "Check adapter readiness: " + fetchedEventsCount + "/" + eventIdsToFetch.size() + " events, " + fetchedUsersCount + "/" + userIdsToFetch.size() + " users");
+        Log.d("RegistrationFragment", "Adapter readiness: " + fetchedEventsCount + "/" + eventIdsToFetch.size() +
+                " events, " + fetchedUsersCount + "/" + userIdsToFetch.size() + " users");
+
         if (fetchedEventsCount == eventIdsToFetch.size() && fetchedUsersCount == userIdsToFetch.size()) {
-            Log.d("RegistrationFragment", "Updating adapter with " + registrations.size() + " registrations, " + events.size() + " events, " + users.size() + " users");
             registrationAdapter.updateData(registrations, events, users);
+
             boolean hasFutureEvents = events.stream().anyMatch(e -> e.getEndTime().isAfter(LocalDateTime.now()));
             fabAdd.setEnabled(hasFutureEvents);
 
-            if (registrations.isEmpty()) {
-                emptyMessage.setVisibility(View.VISIBLE);
-                registrationRecyclerView.setVisibility(View.GONE);
-            } else {
-                emptyMessage.setVisibility(View.GONE);
-                registrationRecyclerView.setVisibility(View.VISIBLE);
-            }
+            boolean showEmpty = registrations.isEmpty();
+            emptyMessage.setVisibility(showEmpty ? View.VISIBLE : View.GONE);
+            registrationRecyclerView.setVisibility(showEmpty ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -303,4 +290,5 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
         Log.e("RegistrationFragment", message);
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
+
 }

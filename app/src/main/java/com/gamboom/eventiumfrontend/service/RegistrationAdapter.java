@@ -19,7 +19,6 @@ import com.gamboom.eventiumfrontend.model.User;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import android.util.Log;
 
 public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapter.RegistrationViewHolder> {
 
@@ -54,7 +53,6 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
                 userNames.put(user.getUserId(), user.getName());
             }
         }
-
     }
 
     @NonNull
@@ -67,7 +65,6 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
 
     @Override
     public void onBindViewHolder(@NonNull RegistrationViewHolder holder, int position) {
-        Log.d("AdapterBind", "Binding position: " + position);
         Registration registration = registrationList.get(position);
 
         String userName = userNames.getOrDefault(registration.getUserId(), "Unknown User");
@@ -84,14 +81,13 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         if (isSelf || isStaff) {
             holder.btnDelete.setVisibility(View.VISIBLE);
             holder.btnDelete.setOnClickListener(v -> {
-                if (listener != null) listener.onDeleteRegistration(registration);
+                if (listener != null) {
+                    listener.onDeleteRegistration(registration);
+                }
             });
         } else {
             holder.btnDelete.setVisibility(View.GONE);
         }
-
-        // ✅ Add this log for debugging
-        Log.d("AdapterBind", "Bound item for event: " + eventTitle + ", user: " + userName);
     }
 
     @Override
@@ -124,8 +120,6 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     public void updateData(List<Registration> newRegistrations,
                            List<Event> newEvents,
                            List<User> newUsers) {
-
-        Log.d("AdapterUpdate", "Adapter received " + (newRegistrations != null ? newRegistrations.size() : 0) + " registrations");
 
         registrationList.clear();
         if (newRegistrations != null) {
