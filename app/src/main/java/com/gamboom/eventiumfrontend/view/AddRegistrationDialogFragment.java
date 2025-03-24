@@ -5,13 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
@@ -33,13 +27,12 @@ import retrofit2.Response;
 public class AddRegistrationDialogFragment extends DialogFragment {
 
     private Spinner eventSpinner;
-    private TextView eventDescription, eventTime, eventLocation;
+    private TextView eventDescription, eventTime, eventLocation, noEventsMessage;
     private Button btnRegister, btnCancel;
     private List<Event> events;
-    private User currentUser; // Current logged-in user
-    private RegistrationFragment parentFragment; // Reference to the parent fragment
+    private User currentUser;
+    private RegistrationFragment parentFragment;
 
-    // Add method to set parent fragment
     public void setParentFragment(RegistrationFragment parentFragment) {
         this.parentFragment = parentFragment;
     }
@@ -47,13 +40,8 @@ public class AddRegistrationDialogFragment extends DialogFragment {
     @Override
     public void onStart() {
         super.onStart();
-
-        // Set the dialog's width and height
         if (getDialog() != null && getDialog().getWindow() != null) {
-            getDialog().getWindow().setLayout(
-                    ViewGroup.LayoutParams.MATCH_PARENT, // Width
-                    ViewGroup.LayoutParams.WRAP_CONTENT  // Height
-            );
+            getDialog().getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
 
@@ -64,7 +52,9 @@ public class AddRegistrationDialogFragment extends DialogFragment {
                              @Nullable ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.dialog_add_update_registration, container, false);
+        currentUser = AppSession.getInstance().getCurrentUser();
+
+        View view = inflater.inflate(R.layout.dialog_add_registration, container, false);
 
         eventSpinner = view.findViewById(R.id.eventSpinner);
         eventDescription = view.findViewById(R.id.eventDescription);
@@ -72,66 +62,65 @@ public class AddRegistrationDialogFragment extends DialogFragment {
         eventLocation = view.findViewById(R.id.eventLocation);
         btnRegister = view.findViewById(R.id.btn_save);
         btnCancel = view.findViewById(R.id.btn_cancel);
-
-        // Fetch events and populate the spinner
-        fetchEvents();
+        noEventsMessage = view.findViewById(R.id.noEventsMessage);
 
         btnCancel.setOnClickListener(v -> dismiss());
 
         btnRegister.setOnClickListener(v -> {
-            Event selectedEvent = events.get(eventSpinner.getSelectedItemPosition());
-
-            // Check if the event has already passed
-            if (LocalDateTime.now().isAfter(selectedEvent.getStartTime())) {
-                Toast.makeText(getActivity(), "This event has already passed", Toast.LENGTH_SHORT).show();
+            if (events == null || events.isEmpty()) {
+                Toast.makeText(getActivity(), "No events to register for", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Register the user for the event
+            Event selectedEvent = events.get(eventSpinner.getSelectedItemPosition());
+
+            if (LocalDateTime.now().isAfter(selectedEvent.getEndTime())) {
+                Toast.makeText(getActivity(), "This event is over", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             if (parentFragment != null) {
-                parentFragment.addRegistrationToDatabase(
-                        selectedEvent.getEventId(), // Pass the eventId directly
-                        currentUser.getUserId()
-                );
+                parentFragment.addRegistrationToDatabase(selectedEvent.getEventId(), currentUser.getUserId());
                 dismiss();
             } else {
-                Toast.makeText(getActivity(), "Parent fragment is not set", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Parent fragment not found", Toast.LENGTH_SHORT).show();
             }
         });
 
+        fetchEvents();
         return view;
     }
 
     private void fetchEvents() {
         EventRepository eventRepository = new EventRepository();
-        String token = AppSession.getInstance().getAccessToken();
-
         eventRepository.getAllEvents().enqueue(new Callback<List<Event>>() {
             @Override
             public void onResponse(@NonNull Call<List<Event>> call, @NonNull Response<List<Event>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // Filter events to show only future events
                     events = new ArrayList<>();
                     LocalDateTime now = LocalDateTime.now();
+
                     for (Event event : response.body()) {
-                        if (event.getStartTime().isAfter(now)) {
+                        if (event.getEndTime().isAfter(now)) {
                             events.add(event);
                         }
                     }
 
                     if (events.isEmpty()) {
-                        Toast.makeText(getActivity(), "No upcoming events found", Toast.LENGTH_SHORT).show();
-                        dismiss(); // Close the dialog if there are no future events
+                        showNoEventsMessage();
                     } else {
                         populateEventSpinner();
+                        showEventForm();
                     }
                 } else {
+                    showNoEventsMessage();
                     Toast.makeText(getActivity(), "Failed to load events", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<Event>> call, @NonNull Throwable t) {
+                showNoEventsMessage();
                 Toast.makeText(getActivity(), "Error loading events", Toast.LENGTH_SHORT).show();
             }
         });
@@ -163,8 +152,21 @@ public class AddRegistrationDialogFragment extends DialogFragment {
         });
     }
 
-    // Add method to set currentUser
-    public void setCurrentUser(User currentUser) {
-        this.currentUser = currentUser;
+    private void showNoEventsMessage() {
+        noEventsMessage.setVisibility(View.VISIBLE);
+        eventSpinner.setVisibility(View.GONE);
+        eventDescription.setVisibility(View.GONE);
+        eventTime.setVisibility(View.GONE);
+        eventLocation.setVisibility(View.GONE);
+        btnRegister.setVisibility(View.GONE);
+    }
+
+    private void showEventForm() {
+        noEventsMessage.setVisibility(View.GONE);
+        eventSpinner.setVisibility(View.VISIBLE);
+        eventDescription.setVisibility(View.VISIBLE);
+        eventTime.setVisibility(View.VISIBLE);
+        eventLocation.setVisibility(View.VISIBLE);
+        btnRegister.setVisibility(View.VISIBLE);
     }
 }

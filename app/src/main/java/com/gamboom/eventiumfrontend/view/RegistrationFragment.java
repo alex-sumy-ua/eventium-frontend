@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Event;
 import com.gamboom.eventiumfrontend.model.Registration;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 import com.gamboom.eventiumfrontend.repository.EventRepository;
 import com.gamboom.eventiumfrontend.repository.RegistrationRepository;
@@ -32,26 +34,30 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RegistrationFragment extends Fragment {
+public class RegistrationFragment extends Fragment implements RegistrationAdapter.OnRegistrationActionListener {
 
     private RecyclerView registrationRecyclerView;
     private RegistrationAdapter registrationAdapter;
+    private FloatingActionButton fabAdd;
+    private TextView emptyMessage;
+
     private RegistrationRepository registrationRepository;
     private EventRepository eventRepository;
     private UserRepository userRepository;
 
-    private List<Registration> registrations;
+    private final List<Registration> registrations = new ArrayList<>();
     private final List<Event> events = new ArrayList<>();
     private final List<User> users = new ArrayList<>();
 
-    private final Set<UUID> uniqueUserIds = new HashSet<>();
-    private final Set<UUID> uniqueEventIds = new HashSet<>();
+    private final Set<UUID> eventIdsToFetch = new HashSet<>();
+    private final Set<UUID> userIdsToFetch = new HashSet<>();
+
+    private int fetchedEventsCount = 0;
+    private int fetchedUsersCount = 0;
 
     private User currentUser;
 
-    public RegistrationFragment() {
-        // Required empty public constructor
-    }
+    public RegistrationFragment() {}
 
     @Nullable
     @Override
@@ -60,46 +66,32 @@ public class RegistrationFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         currentUser = AppSession.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            Log.d("EventFragment", "Current user ID: " + currentUser.getUserId());
-        } else {
-            Log.e("EventFragment", "No current user found in AppSession");
-        }
 
         View view = inflater.inflate(R.layout.fragment_registration, container, false);
 
-        FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
-        fabAdd.setOnClickListener(v -> openAddRegistrationDialog());
+        fabAdd = view.findViewById(R.id.fab_add);
+        registrationRecyclerView = view.findViewById(R.id.registrationRecyclerView);
+        emptyMessage = view.findViewById(R.id.emptyMessage);
 
-        return view;
-    }
+        registrationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-    @Override
-    public void onViewCreated(@NonNull View view,
-                              @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // Initialize repositories
         registrationRepository = new RegistrationRepository();
         eventRepository = new EventRepository();
         userRepository = new UserRepository();
 
-        // Setup RecyclerView
-        registrationRecyclerView = view.findViewById(R.id.registrationRecyclerView);
-        registrationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // Initialize Adapter with click listener
         registrationAdapter = new RegistrationAdapter(
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                this::onRegistrationClicked
+                registrations,
+                events,
+                users,
+                this
         );
-
         registrationRecyclerView.setAdapter(registrationAdapter);
 
-        // Fetch registrations, events, and users
+        fabAdd.setOnClickListener(v -> openAddRegistrationDialog());
+
         fetchRegistrations();
+
+        return view;
     }
 
     private void fetchRegistrations() {
@@ -108,175 +100,194 @@ public class RegistrationFragment extends Fragment {
             public void onResponse(@NonNull Call<List<Registration>> call,
                                    @NonNull Response<List<Registration>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    registrations = response.body();
-                    Log.d("RegistrationFragment", "Registrations fetched: " + registrations.size());
+                    registrations.clear();
+                    registrations.addAll(response.body());
+                    registrations.sort(Comparator.comparing(Registration::getRegistrationTime).reversed());
 
-                    events.clear();
-                    users.clear();
-                    uniqueEventIds.clear();
-                    uniqueUserIds.clear();
+                    eventIdsToFetch.clear();
+                    userIdsToFetch.clear();
 
                     for (Registration registration : registrations) {
-                        if (registration.getEventId() != null) {
-                            uniqueEventIds.add(registration.getEventId());
-                        }
-                        if (registration.getUserId() != null) {
-                            uniqueUserIds.add(registration.getUserId());
-                        }
+                        if (registration.getEventId() != null)
+                            eventIdsToFetch.add(registration.getEventId());
+                        if (registration.getUserId() != null)
+                            userIdsToFetch.add(registration.getUserId());
+                        Log.d("RegistrationDebug", "Registration - UserID: " + registration.getUserId() + ", EventID: " + registration.getEventId());
                     }
 
-                    if (currentUser.getUserId() != null) {
-                        uniqueUserIds.add(currentUser.getUserId());
+                    if (currentUser != null) {
+                        userIdsToFetch.add(currentUser.getUserId());
                     }
 
-                    fetchEventsByIds(new ArrayList<>(uniqueEventIds));
-                    fetchUsersByIds(new ArrayList<>(uniqueUserIds));
+                    Log.d("RegistrationFragment", "Registrations loaded: " + registrations.size());
+
+                    fetchEvents();
+                    fetchUsers();
                 } else {
-                    showError("Failed to load registrations. Response code: " + response.code());
-                    Log.e("RegistrationFragment", "Network error: Unable to load registrations.");
-
+                    showError("Failed to load registrations.");
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<Registration>> call,
-                                  @NonNull Throwable t) {
-                showError("API: Unable to load registrations.");
-                Log.e("RegistrationFragment", "Network error: Unable to load registrations.", t);
+            public void onFailure(@NonNull Call<List<Registration>> call, @NonNull Throwable t) {
+                showError("Error fetching registrations.");
             }
         });
     }
 
-    private void fetchEventsByIds(List<UUID> eventIds) {
-        for (UUID eventId : eventIds) {
-            eventRepository.getEventById(eventId).enqueue(new Callback<Event>() {
+    private void fetchEvents() {
+        events.clear();
+        fetchedEventsCount = 0;
+
+        if (eventIdsToFetch.isEmpty()) {
+            updateAdapterIfReady();
+            return;
+        }
+
+        for (UUID id : eventIdsToFetch) {
+            eventRepository.getEventById(id).enqueue(new Callback<Event>() {
                 @Override
                 public void onResponse(@NonNull Call<Event> call, @NonNull Response<Event> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         events.add(response.body());
-                        if (events.size() == eventIds.size()) {
-                            updateAdapterIfReady();
-                        }
-                    } else {
-                        showError("Failed to load event. Response code: " + response.code());
                     }
+                    checkIfAllEventsFetched();
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<Event> call, @NonNull Throwable t) {
-                    showError("Network error: Unable to load event. Error: " + t.getMessage());
+                    checkIfAllEventsFetched();
+                    showError("Error fetching event.");
+                }
+
+                private void checkIfAllEventsFetched() {
+                    fetchedEventsCount++;
+                    Log.d("RegistrationFragment", "Fetched event count: " + fetchedEventsCount + "/" + eventIdsToFetch.size());
+                    if (fetchedEventsCount == eventIdsToFetch.size()) {
+                        Log.d("RegistrationFragment", "All events fetched: " + events.size());
+                        updateAdapterIfReady();
+                    }
                 }
             });
         }
     }
 
-    private void fetchUsersByIds(List<UUID> userIds) {
-        for (UUID userId : userIds) {
-            userRepository.getUserById(userId).enqueue(new Callback<User>() {
+    private void fetchUsers() {
+        users.clear();
+        fetchedUsersCount = 0;
+
+        if (userIdsToFetch.isEmpty()) {
+            updateAdapterIfReady();
+            return;
+        }
+
+        for (UUID id : userIdsToFetch) {
+            userRepository.getUserById(id).enqueue(new Callback<User>() {
                 @Override
                 public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         users.add(response.body());
-                        if (users.size() == userIds.size()) {
-                            updateAdapterIfReady();
-                        }
-                    } else {
-                        showError("Failed to load user. Response code: " + response.code());
                     }
+                    checkIfAllUsersFetched();
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
-                    showError("Network error: Unable to load user. Error: " + t.getMessage());
+                    checkIfAllUsersFetched();
+                    showError("Error fetching user.");
+                }
+
+                private void checkIfAllUsersFetched() {
+                    fetchedUsersCount++;
+                    Log.d("RegistrationFragment", "Fetched user count: " + fetchedUsersCount + "/" + userIdsToFetch.size());
+                    if (fetchedUsersCount == userIdsToFetch.size()) {
+                        Log.d("RegistrationFragment", "All users fetched: " + users.size());
+                        updateAdapterIfReady();
+                    }
                 }
             });
         }
     }
 
     private void updateAdapterIfReady() {
-        if (events.size() == uniqueEventIds.size() && users.size() == uniqueUserIds.size()) {
-            updateAdapter();
-        }
-    }
-
-    private void updateAdapter() {
-        if (registrations != null && !events.isEmpty() && !users.isEmpty()) {
+        Log.d("RegistrationFragment", "Check adapter readiness: " + fetchedEventsCount + "/" + eventIdsToFetch.size() + " events, " + fetchedUsersCount + "/" + userIdsToFetch.size() + " users");
+        if (fetchedEventsCount == eventIdsToFetch.size() && fetchedUsersCount == userIdsToFetch.size()) {
+            Log.d("RegistrationFragment", "Updating adapter with " + registrations.size() + " registrations, " + events.size() + " events, " + users.size() + " users");
             registrationAdapter.updateData(registrations, events, users);
-        } else {
-            showError("Incomplete data: Cannot update adapter.");
-        }
-    }
+            boolean hasFutureEvents = events.stream().anyMatch(e -> e.getEndTime().isAfter(LocalDateTime.now()));
+            fabAdd.setEnabled(hasFutureEvents);
 
-    private void showError(String message) {
-        Log.e("RegistrationFragment", message);
-        if (getContext() != null) {
-            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            if (registrations.isEmpty()) {
+                emptyMessage.setVisibility(View.VISIBLE);
+                registrationRecyclerView.setVisibility(View.GONE);
+            } else {
+                emptyMessage.setVisibility(View.GONE);
+                registrationRecyclerView.setVisibility(View.VISIBLE);
+            }
         }
     }
 
     private void openAddRegistrationDialog() {
         AddRegistrationDialogFragment dialog = new AddRegistrationDialogFragment();
-
-        if (currentUser != null) {
-            for (User user : users) {
-                if (user.getUserId().equals(currentUser.getUserId())) {
-                    dialog.setCurrentUser(user);
-                    dialog.setParentFragment(this);
-                    dialog.show(getParentFragmentManager(), "AddRegistrationDialog");
-                    return;
-                }
-            }
-            Toast.makeText(getContext(), "Current user not found", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
-        }
+        dialog.setParentFragment(this);
+        dialog.show(getParentFragmentManager(), "AddRegistrationDialog");
     }
 
     public void addRegistrationToDatabase(UUID eventId, UUID userId) {
-        Registration newRegistration = new Registration();
-        newRegistration.setEventId(eventId);
-        newRegistration.setUserId(userId);
-        newRegistration.setRegistrationTime(LocalDateTime.now());
+        Registration registration = new Registration();
+        registration.setEventId(eventId);
+        registration.setUserId(userId);
+        registration.setRegistrationTime(LocalDateTime.now());
 
-        registrationRepository.createRegistration(newRegistration).enqueue(new Callback<Registration>() {
+        registrationRepository.createRegistration(registration).enqueue(new Callback<Registration>() {
             @Override
             public void onResponse(@NonNull Call<Registration> call, @NonNull Response<Registration> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(getContext(), "Registration added successfully", Toast.LENGTH_SHORT).show();
-                    fetchRegistrations(); // Refresh the list
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Registration successful", Toast.LENGTH_SHORT).show();
+                    fetchRegistrations();
                 } else {
-                    showError("Failed to add registration. Response code: " + response.code());
+                    showError("Failed to register.");
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<Registration> call, @NonNull Throwable t) {
-                showError("Error adding registration: " + t.getMessage());
+                showError("Error creating registration");
             }
         });
     }
 
-    private void onRegistrationClicked(Registration registration) {
-        String userName = "Unknown User";
-        String eventTitle = "Unknown Event";
+    @Override
+    public void onDeleteRegistration(Registration registration) {
+        if (currentUser == null) return;
 
-        for (User user : users) {
-            if (user.getUserId().equals(registration.getUserId())) {
-                userName = user.getName();
-                break;
-            }
+        boolean isSelf = registration.getUserId().equals(currentUser.getUserId());
+        boolean isStaff = currentUser.getRole() == Role.STAFF;
+
+        if (isSelf || isStaff) {
+            showDeleteConfirmationDialog("Delete this registration?", () -> deleteRegistration(registration));
+        } else {
+            Toast.makeText(getContext(), "Only for your own registration", Toast.LENGTH_SHORT).show();
         }
+    }
 
-        for (Event event : events) {
-            if (event.getEventId().equals(registration.getEventId())) {
-                eventTitle = event.getTitle();
-                break;
+    private void deleteRegistration(Registration registration) {
+        registrationRepository.deleteRegistration(registration.getEventRegistrationId()).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Registration deleted", Toast.LENGTH_SHORT).show();
+                    fetchRegistrations();
+                } else {
+                    showError("Failed to delete registration");
+                }
             }
-        }
 
-        Toast.makeText(getContext(),
-                "Registration clicked:\nUser: " + userName + "\nEvent: " + eventTitle,
-                Toast.LENGTH_LONG).show();
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                showError("Error deleting registration");
+            }
+        });
     }
 
     private void showDeleteConfirmationDialog(String message, Runnable onConfirm) {
@@ -288,4 +299,8 @@ public class RegistrationFragment extends Fragment {
                 .show();
     }
 
+    private void showError(String message) {
+        Log.e("RegistrationFragment", message);
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+    }
 }

@@ -1,10 +1,10 @@
 package com.gamboom.eventiumfrontend.service;
 
 import android.annotation.SuppressLint;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,42 +13,35 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.gamboom.eventiumfrontend.R;
 import com.gamboom.eventiumfrontend.model.Event;
 import com.gamboom.eventiumfrontend.model.Registration;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import android.util.Log;
 
 public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapter.RegistrationViewHolder> {
+
+    public interface OnRegistrationActionListener {
+        void onDeleteRegistration(Registration registration);
+    }
 
     private final List<Registration> registrationList;
     private final Map<UUID, String> eventTitles;
     private final Map<UUID, String> userNames;
+    private final OnRegistrationActionListener listener;
+    private final User currentUser;
 
-    private OnRegistrationClickListener listener;
-
-    // Optional click listener interface
-    public interface OnRegistrationClickListener {
-        void onRegistrationClick(Registration registration);
-    }
-
-    // Constructor with click listener
     public RegistrationAdapter(List<Registration> registrationList,
                                List<Event> eventList,
                                List<User> userList,
-                               OnRegistrationClickListener listener) {
-        this(registrationList, eventList, userList);
-        this.listener = listener;
-    }
-
-    // Constructor without click listener
-    public RegistrationAdapter(List<Registration> registrationList,
-                               List<Event> eventList,
-                               List<User> userList) {
-        this.registrationList = registrationList != null ? registrationList : new ArrayList<>();
+                               OnRegistrationActionListener listener) {
+        this.registrationList = new ArrayList<>();
         this.eventTitles = new HashMap<>();
         this.userNames = new HashMap<>();
-        this.listener = null;
+        this.listener = listener;
+        this.currentUser = AppSession.getInstance().getCurrentUser();
 
         if (eventList != null) {
             for (Event event : eventList) {
@@ -61,6 +54,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
                 userNames.put(user.getUserId(), user.getName());
             }
         }
+
     }
 
     @NonNull
@@ -73,6 +67,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
 
     @Override
     public void onBindViewHolder(@NonNull RegistrationViewHolder holder, int position) {
+        Log.d("AdapterBind", "Binding position: " + position);
         Registration registration = registrationList.get(position);
 
         String userName = userNames.getOrDefault(registration.getUserId(), "Unknown User");
@@ -83,11 +78,20 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         holder.userNameTextView.setText(userName);
         holder.registrationTimeTextView.setText(formattedDate);
 
-        Log.d("RegistrationAdapter", "User: " + userName + ", Event: " + eventTitle + ", Time: " + formattedDate);
+        boolean isSelf = currentUser != null && registration.getUserId().equals(currentUser.getUserId());
+        boolean isStaff = currentUser != null && currentUser.getRole() == Role.STAFF;
 
-        if (listener != null) {
-            holder.itemView.setOnClickListener(v -> listener.onRegistrationClick(registration));
+        if (isSelf || isStaff) {
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> {
+                if (listener != null) listener.onDeleteRegistration(registration);
+            });
+        } else {
+            holder.btnDelete.setVisibility(View.GONE);
         }
+
+        // ✅ Add this log for debugging
+        Log.d("AdapterBind", "Bound item for event: " + eventTitle + ", user: " + userName);
     }
 
     @Override
@@ -95,7 +99,6 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         return registrationList.size();
     }
 
-    // Reusable date formatter
     private String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return "N/A";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -106,12 +109,14 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         TextView eventTitleTextView;
         TextView userNameTextView;
         TextView registrationTimeTextView;
+        ImageButton btnDelete;
 
         public RegistrationViewHolder(@NonNull View itemView) {
             super(itemView);
             eventTitleTextView = itemView.findViewById(R.id.eventTitleTextView);
             userNameTextView = itemView.findViewById(R.id.userNameTextView);
             registrationTimeTextView = itemView.findViewById(R.id.registrationTimeTextView);
+            btnDelete = itemView.findViewById(R.id.btn_delete_registration);
         }
     }
 
@@ -120,10 +125,13 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
                            List<Event> newEvents,
                            List<User> newUsers) {
 
-        Log.d("RegistrationAdapter", "Updating data...");
+        Log.d("AdapterUpdate", "Adapter received " + (newRegistrations != null ? newRegistrations.size() : 0) + " registrations");
 
         registrationList.clear();
-        registrationList.addAll(newRegistrations != null ? newRegistrations : new ArrayList<>());
+        if (newRegistrations != null) {
+            registrationList.addAll(newRegistrations);
+            registrationList.sort(Comparator.comparing(Registration::getRegistrationTime).reversed());
+        }
 
         eventTitles.clear();
         if (newEvents != null) {

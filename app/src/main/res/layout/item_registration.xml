@@ -5,11 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp"
-    android:background="?attr/selectableItemBackground"
-    android:clickable="true"
-    android:focusable="true">
+    android:background="#ffeeee">
 
-    <!-- Registration Title -->
+    <!-- Title -->
     <TextView
         android:id="@+id/text_registration"
         android:layout_width="wrap_content"
@@ -18,7 +16,17 @@
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Delete Button -->
+    <ImageButton
+        android:id="@+id/btn_delete_registration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:contentDescription="Delete Registration"
+        android:src="@android:drawable/ic_menu_delete"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Event Title -->
@@ -29,11 +37,10 @@
         android:text="Event Title"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/text_registration"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- User Name -->
     <TextView
@@ -44,8 +51,7 @@
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/eventTitleTextView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="4dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Registration Time -->
     <TextView
