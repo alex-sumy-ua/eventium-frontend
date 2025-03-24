@@ -27,16 +27,20 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     }
 
     private final List<Registration> registrationList;
+    private final List<Registration> allRegistrations;
     private final Map<UUID, String> eventTitles;
     private final Map<UUID, String> userNames;
     private final OnRegistrationActionListener listener;
     private final User currentUser;
+
+    private boolean showOnlyMine = false;
 
     public RegistrationAdapter(List<Registration> registrationList,
                                List<Event> eventList,
                                List<User> userList,
                                OnRegistrationActionListener listener) {
         this.registrationList = new ArrayList<>();
+        this.allRegistrations = new ArrayList<>();
         this.eventTitles = new HashMap<>();
         this.userNames = new HashMap<>();
         this.listener = listener;
@@ -52,6 +56,10 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             for (User user : userList) {
                 userNames.put(user.getUserId(), user.getName());
             }
+        }
+
+        if (registrationList != null) {
+            allRegistrations.addAll(registrationList);
         }
     }
 
@@ -81,9 +89,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         if (isSelf || isStaff) {
             holder.btnDelete.setVisibility(View.VISIBLE);
             holder.btnDelete.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onDeleteRegistration(registration);
-                }
+                if (listener != null) listener.onDeleteRegistration(registration);
             });
         } else {
             holder.btnDelete.setVisibility(View.GONE);
@@ -121,10 +127,9 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
                            List<Event> newEvents,
                            List<User> newUsers) {
 
-        registrationList.clear();
+        allRegistrations.clear();
         if (newRegistrations != null) {
-            registrationList.addAll(newRegistrations);
-            registrationList.sort(Comparator.comparing(Registration::getRegistrationTime).reversed());
+            allRegistrations.addAll(newRegistrations);
         }
 
         eventTitles.clear();
@@ -141,7 +146,31 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             }
         }
 
+        applyFilter();
+    }
+
+    public void toggleFilterOnlyMine() {
+        showOnlyMine = !showOnlyMine;
+        applyFilter();
+    }
+
+    private void applyFilter() {
+        registrationList.clear();
+        if (showOnlyMine && currentUser != null) {
+            for (Registration reg : allRegistrations) {
+                if (reg.getUserId().equals(currentUser.getUserId())) {
+                    registrationList.add(reg);
+                }
+            }
+        } else {
+            registrationList.addAll(allRegistrations);
+        }
+        registrationList.sort(Comparator.comparing(Registration::getRegistrationTime).reversed());
         notifyDataSetChanged();
+    }
+
+    public boolean isShowingOnlyMine() {
+        return showOnlyMine;
     }
 
 }

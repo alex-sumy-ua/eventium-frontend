@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,6 +41,7 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
     private RegistrationAdapter registrationAdapter;
     private FloatingActionButton fabAdd;
     private TextView emptyMessage;
+    private ToggleButton toggleFilter;
 
     private RegistrationRepository registrationRepository;
     private EventRepository eventRepository;
@@ -72,6 +74,7 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
         fabAdd = view.findViewById(R.id.fab_add);
         registrationRecyclerView = view.findViewById(R.id.registrationRecyclerView);
         emptyMessage = view.findViewById(R.id.emptyMessage);
+        toggleFilter = view.findViewById(R.id.toggle_filter);
 
         registrationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -79,10 +82,20 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
         eventRepository = new EventRepository();
         userRepository = new UserRepository();
 
-        registrationAdapter = new RegistrationAdapter(registrations, events, users, this);
+        registrationAdapter = new RegistrationAdapter(
+                registrations,
+                events,
+                users,
+                this
+        );
         registrationRecyclerView.setAdapter(registrationAdapter);
 
         fabAdd.setOnClickListener(v -> openAddRegistrationDialog());
+
+        toggleFilter.setOnClickListener(v -> {
+            registrationAdapter.toggleFilterOnlyMine();
+            updateEmptyState();
+        });
 
         fetchRegistrations();
 
@@ -102,16 +115,17 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
                     eventIdsToFetch.clear();
                     userIdsToFetch.clear();
 
-                    for (Registration r : registrations) {
-                        if (r.getEventId() != null) eventIdsToFetch.add(r.getEventId());
-                        if (r.getUserId() != null) userIdsToFetch.add(r.getUserId());
+                    for (Registration registration : registrations) {
+                        if (registration.getEventId() != null)
+                            eventIdsToFetch.add(registration.getEventId());
+                        if (registration.getUserId() != null)
+                            userIdsToFetch.add(registration.getUserId());
                     }
 
                     if (currentUser != null) {
                         userIdsToFetch.add(currentUser.getUserId());
                     }
 
-                    Log.d("RegistrationFragment", "Registrations loaded: " + registrations.size());
                     fetchEvents();
                     fetchUsers();
                 } else {
@@ -147,14 +161,13 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
 
                 @Override
                 public void onFailure(@NonNull Call<Event> call, @NonNull Throwable t) {
-                    showError("Error fetching event.");
                     checkIfAllEventsFetched();
+                    showError("Error fetching event.");
                 }
 
                 private void checkIfAllEventsFetched() {
                     fetchedEventsCount++;
                     if (fetchedEventsCount == eventIdsToFetch.size()) {
-                        Log.d("RegistrationFragment", "All events fetched: " + events.size());
                         updateAdapterIfReady();
                     }
                 }
@@ -183,14 +196,13 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
 
                 @Override
                 public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
-                    showError("Error fetching user.");
                     checkIfAllUsersFetched();
+                    showError("Error fetching user.");
                 }
 
                 private void checkIfAllUsersFetched() {
                     fetchedUsersCount++;
                     if (fetchedUsersCount == userIdsToFetch.size()) {
-                        Log.d("RegistrationFragment", "All users fetched: " + users.size());
                         updateAdapterIfReady();
                     }
                 }
@@ -199,18 +211,21 @@ public class RegistrationFragment extends Fragment implements RegistrationAdapte
     }
 
     private void updateAdapterIfReady() {
-        Log.d("RegistrationFragment", "Adapter readiness: " + fetchedEventsCount + "/" + eventIdsToFetch.size() +
-                " events, " + fetchedUsersCount + "/" + userIdsToFetch.size() + " users");
-
         if (fetchedEventsCount == eventIdsToFetch.size() && fetchedUsersCount == userIdsToFetch.size()) {
             registrationAdapter.updateData(registrations, events, users);
-
             boolean hasFutureEvents = events.stream().anyMatch(e -> e.getEndTime().isAfter(LocalDateTime.now()));
             fabAdd.setEnabled(hasFutureEvents);
+            updateEmptyState();
+        }
+    }
 
-            boolean showEmpty = registrations.isEmpty();
-            emptyMessage.setVisibility(showEmpty ? View.VISIBLE : View.GONE);
-            registrationRecyclerView.setVisibility(showEmpty ? View.GONE : View.VISIBLE);
+    private void updateEmptyState() {
+        if (registrationAdapter.getItemCount() == 0) {
+            emptyMessage.setVisibility(View.VISIBLE);
+            registrationRecyclerView.setVisibility(View.GONE);
+        } else {
+            emptyMessage.setVisibility(View.GONE);
+            registrationRecyclerView.setVisibility(View.VISIBLE);
         }
     }
 
