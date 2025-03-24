@@ -1,6 +1,9 @@
 package com.gamboom.eventiumfrontend.service;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
+import android.provider.CalendarContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +20,7 @@ import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -26,29 +30,26 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         void onDeleteRegistration(Registration registration);
     }
 
-    private final List<Registration> registrationList;
-    private final List<Registration> allRegistrations;
-    private final Map<UUID, String> eventTitles;
-    private final Map<UUID, String> userNames;
+    private final List<Registration> registrationList = new ArrayList<>();
+    private final List<Registration> allRegistrations = new ArrayList<>();
+    private final Map<UUID, String> userNames = new HashMap<>();
+    private final Map<UUID, Event> eventMap = new HashMap<>();
+
     private final OnRegistrationActionListener listener;
     private final User currentUser;
 
     private boolean showOnlyMine = false;
 
-    public RegistrationAdapter(List<Registration> registrationList,
+    public RegistrationAdapter(List<Registration> registrations,
                                List<Event> eventList,
                                List<User> userList,
                                OnRegistrationActionListener listener) {
-        this.registrationList = new ArrayList<>();
-        this.allRegistrations = new ArrayList<>();
-        this.eventTitles = new HashMap<>();
-        this.userNames = new HashMap<>();
         this.listener = listener;
         this.currentUser = AppSession.getInstance().getCurrentUser();
 
         if (eventList != null) {
             for (Event event : eventList) {
-                eventTitles.put(event.getEventId(), event.getTitle());
+                eventMap.put(event.getEventId(), event);
             }
         }
 
@@ -58,9 +59,11 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             }
         }
 
-        if (registrationList != null) {
-            allRegistrations.addAll(registrationList);
+        if (registrations != null) {
+            allRegistrations.addAll(registrations);
         }
+
+        applyFilter(); // initial data population
     }
 
     @NonNull
@@ -74,9 +77,10 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     @Override
     public void onBindViewHolder(@NonNull RegistrationViewHolder holder, int position) {
         Registration registration = registrationList.get(position);
+        Event event = eventMap.get(registration.getEventId());
 
         String userName = userNames.getOrDefault(registration.getUserId(), "Unknown User");
-        String eventTitle = eventTitles.getOrDefault(registration.getEventId(), "Unknown Event");
+        String eventTitle = (event != null) ? event.getTitle() : "Unknown Event";
         String formattedDate = formatDateTime(registration.getRegistrationTime());
 
         holder.eventTitleTextView.setText(eventTitle);
@@ -86,6 +90,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         boolean isSelf = currentUser != null && registration.getUserId().equals(currentUser.getUserId());
         boolean isStaff = currentUser != null && currentUser.getRole() == Role.STAFF;
 
+        // Delete Button
         if (isSelf || isStaff) {
             holder.btnDelete.setVisibility(View.VISIBLE);
             holder.btnDelete.setOnClickListener(v -> {
@@ -93,6 +98,30 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             });
         } else {
             holder.btnDelete.setVisibility(View.GONE);
+        }
+
+        // Calendar Button — visible only for own registrations
+        if (isSelf) {
+            holder.btnAddToCalendar.setVisibility(View.VISIBLE);
+            holder.btnAddToCalendar.setOnClickListener(v -> {
+                if (event != null) {
+                    Context context = v.getContext();
+                    long startMillis = event.getStartTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                    long endMillis = event.getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+                    Intent intent = new Intent(Intent.ACTION_INSERT);
+                    intent.setData(CalendarContract.Events.CONTENT_URI);
+                    intent.putExtra(CalendarContract.Events.TITLE, event.getTitle());
+                    intent.putExtra(CalendarContract.Events.EVENT_LOCATION, event.getLocation());
+                    intent.putExtra(CalendarContract.Events.DESCRIPTION, event.getDescription());
+                    intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis);
+                    intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis);
+
+                    context.startActivity(intent);
+                }
+            });
+        } else {
+            holder.btnAddToCalendar.setVisibility(View.GONE);
         }
     }
 
@@ -103,8 +132,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
 
     private String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return "N/A";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        return dateTime.format(formatter);
+        return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
     public static class RegistrationViewHolder extends RecyclerView.ViewHolder {
@@ -112,6 +140,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
         TextView userNameTextView;
         TextView registrationTimeTextView;
         ImageButton btnDelete;
+        ImageButton btnAddToCalendar;
 
         public RegistrationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -119,6 +148,7 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             userNameTextView = itemView.findViewById(R.id.userNameTextView);
             registrationTimeTextView = itemView.findViewById(R.id.registrationTimeTextView);
             btnDelete = itemView.findViewById(R.id.btn_delete_registration);
+            btnAddToCalendar = itemView.findViewById(R.id.btn_add_to_calendar);
         }
     }
 
@@ -132,15 +162,15 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
             allRegistrations.addAll(newRegistrations);
         }
 
-        eventTitles.clear();
         if (newEvents != null) {
+            eventMap.clear();
             for (Event event : newEvents) {
-                eventTitles.put(event.getEventId(), event.getTitle());
+                eventMap.put(event.getEventId(), event);
             }
         }
 
-        userNames.clear();
         if (newUsers != null) {
+            userNames.clear();
             for (User user : newUsers) {
                 userNames.put(user.getUserId(), user.getName());
             }
@@ -172,5 +202,4 @@ public class RegistrationAdapter extends RecyclerView.Adapter<RegistrationAdapte
     public boolean isShowingOnlyMine() {
         return showOnlyMine;
     }
-
 }
