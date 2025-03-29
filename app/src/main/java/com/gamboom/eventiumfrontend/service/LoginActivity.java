@@ -16,7 +16,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.gamboom.eventiumfrontend.MainActivity;
 import com.gamboom.eventiumfrontend.R;
+import com.gamboom.eventiumfrontend.model.Role;
 import com.gamboom.eventiumfrontend.model.User;
+
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,6 +35,24 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.d("LoginActivity", "LoginActivity created");
         setContentView(R.layout.activity_login);
+
+        if (getIntent().getBooleanExtra("TEST_MODE", false)) {
+            // Setup fake session data
+            AppSession.getInstance().setAccessToken("test-token");
+
+            User testUser = new User();
+            testUser.setUserId(UUID.randomUUID());
+            testUser.setEmail("test@example.com");
+            testUser.setRole(Role.STAFF); // or ADMIN
+            testUser.setName("Test User");
+
+            AppSession.getInstance().setCurrentUser(testUser);
+
+            // Launch MainActivity directly
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
 
         // Initialize views
         Button githubLoginButton = findViewById(R.id.githubLoginButton);
@@ -63,7 +84,10 @@ public class LoginActivity extends AppCompatActivity {
     private void handleOAuthCallback(Intent intent) {
         Uri uri = intent.getData();
         if (uri != null) {
-            Log.d("LoginActivity", "Received URI: " + uri.toString());
+
+//* ************** ONLY FOR DEBUGGING ************************************************************ *
+//*            Log.d("LoginActivity", "Received URI: " + uri.toString());                          *
+//* ************** ONLY FOR DEBUGGING ************************************************************ *
 
             if ("eventium".equals(uri.getScheme()) && "auth".equals(uri.getHost())) {
                 String email = uri.getQueryParameter("email");
@@ -76,9 +100,12 @@ public class LoginActivity extends AppCompatActivity {
                     AppSession.getInstance().setAccessToken(authToken);
 
                     Log.d("LoginActivity", "Email received: " + email);
-                    Log.d("LoginActivity", "Token received: " + authToken);
 
-                    Log.d("LoginActivity", "Saved token: " + AppSession.getInstance().getAccessToken());
+//* ************** ONLY FOR DEBUGGING ************************************************************ *
+//*                    Log.d("LoginActivity", "Token received: " + authToken);                     *
+//*                    Log.d("LoginActivity",                                                      *
+//*                          "Saved token: " + AppSession.getInstance().getAccessToken());         *
+//* ************** ONLY FOR DEBUGGING ************************************************************ *
 
                     // Fetch user and proceed
                     fetchUserByEmail(email);

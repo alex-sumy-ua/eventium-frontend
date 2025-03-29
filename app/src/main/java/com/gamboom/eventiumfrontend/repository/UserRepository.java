@@ -40,4 +40,8 @@ public class UserRepository {
         return userApiService.deleteUser("Bearer " + authToken, id);
     }
 
+    public Call<User> getUserByEmail(String email) {
+        return userApiService.getUserByEmail("Bearer " + authToken, email);
+    }
+
 }

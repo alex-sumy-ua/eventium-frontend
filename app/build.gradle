@@ -27,11 +27,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     buildFeatures {
         compose true
@@ -44,6 +44,14 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+
+    packagingOptions {
+        exclude("META-INF/LICENSE.md")
+        exclude("META-INF/LICENSE-notice.md")
+        exclude("META-INF/LICENSE.txt")
+        exclude("META-INF/NOTICE.txt")
+    }
+
 }
 
 dependencies {
@@ -57,6 +65,7 @@ dependencies {
     implementation libs.androidx.ui.tooling.preview
     implementation libs.androidx.material3
     testImplementation libs.junit
+    testImplementation libs.junit.jupiter
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
     androidTestImplementation platform(libs.androidx.compose.bom)
@@ -64,26 +73,47 @@ dependencies {
     debugImplementation libs.androidx.ui.tooling
     debugImplementation libs.androidx.ui.test.manifest
 
-// ************************************************************************
-
-// Retrofit for networking
+    // Retrofit for networking
     implementation libs.retrofit
     implementation libs.retrofit.gson
 
-// Gson for JSON parsing
+    // Gson for JSON parsing
     implementation libs.gson
 
-// ViewModel and LiveData (MVVM architecture)
+    // ViewModel and LiveData (MVVM architecture)
     implementation libs.lifecycle.viewmodel
     implementation libs.lifecycle.livedata
 
-// Coroutine support for background network requests
+    // Coroutine support for background network requests
     implementation libs.coroutines
 
-// Material Design UI components
+    // Material Design UI components
     implementation libs.material
 
-// OkHttp Logging Interceptor
+    // OkHttp Logging Interceptor
     implementation libs.logging.interceptor
+
+    // JUnit for unit testing
+    testImplementation libs.junit.jupiter.v593
+
+    // Mockito for mocking
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.junit.jupiter
+
+    // LiveData & Coroutines Testing
+    testImplementation libs.androidx.core.testing
+
+    // Retrofit testing
+    testImplementation libs.mockwebserver
+
+    // AssertJ for fluent assertions
+    testImplementation libs.assertj.core
+
+    // AndroidX testing dependencies (for instrumented tests)
+    androidTestImplementation libs.androidx.junit.v115
+    androidTestImplementation libs.androidx.espresso.core.v351
+
+    // Mockito for Android instrumentation tests
+    androidTestImplementation libs.mockito.android
 
 }
